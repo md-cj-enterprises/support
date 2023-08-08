@@ -1,0 +1,6 @@
+Django==4.2.2
+pytz
+django-cors-headers
+django_unixdatetimefield
+pandas
+openpyxl
