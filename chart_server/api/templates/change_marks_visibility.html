@@ -1,0 +1,28 @@
+{% block content %}
+  <form action="" method="POST" >
+    {% csrf_token %}
+ 
+    <div class="row">
+        <div class="col-md-6 col-xs-12">
+          <div class="x_panel">
+            <div class="x_title">
+              <h2>Change marks visibility</h2>           
+              <div class="clearfix"></div>
+            </div>
+            <div class="x_content">
+              <div class="col-md-8 col-sm-12 col-xs-12 form-group">      
+              </div>
+                  <label for="dog-names">Additional marks are visible:</label> 
+                  
+                  <input type="checkbox" name="marks_checkbox" {% if marks_visible == True  %} checked{% endif %} value="1">
+                </div>
+                <h2> </h2>           
+
+                  <button type="submit" class="btn btn-success" >Save</button> 
+
+          
+                        </div>
+                    </div>
+                </div>
+  </form>   
+{% endblock %}

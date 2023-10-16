@@ -9,6 +9,26 @@ import os
 from django.core.files.storage import FileSystemStorage
 from .models import Candle
 
+print("HEKK")
+marks_visible = True
+
+def change_marks_visibility(request, template_name="templates/change_marks_visibility.html"):
+    global marks_visible
+    args = {}
+
+    if request.method == 'POST':
+        print(request.POST.get('marks_checkbox', True) )
+        if request.POST.get('marks_checkbox', True) == True:
+            marks_visible = False
+        else:
+            marks_visible = True
+    args['marks_visible'] = marks_visible
+
+    return render(request, 'change_marks_visibility.html', args)
+
+def home(request):
+    return render(request, 'home.html', {})
+
 def config(request):
     response_data = {}
     response_data['supports_search'] = True
@@ -127,6 +147,7 @@ def history(request):
     return HttpResponse(json.dumps(response_data), 'application/json')
     
 def marks(request):
+    global marks_visible
     symbol = request.GET.get("symbol")
     fr = int(request.GET.get("from"))
     to = int(request.GET.get("to"))
@@ -150,17 +171,31 @@ def marks(request):
         marks_list = jsonDec.decode(v['mark_index'])
         
         if v['signal'] != 0:
-            if v['signal'] == 1:
-                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'blue', 'long signal', 'S', 'black', 25)
+            if v['signal'] == 1 and marks_visible:
+                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'green', 'long signal', 'S', 'black', 25)
                 marks_list.pop(0)
-            elif v['signal'] == -1:
-                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'blue', 'short signal', 'S', 'black', 25)
+            elif v['signal'] == -1 and marks_visible:
+                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'red', 'short signal', 'S', 'black', 25)
                 marks_list.pop(0)
             elif v['signal'] == 2:
-                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'green', 'long trade', 'T', 'black', 25)
+                text = 'trade'
+                if v['profit'] != 0:
+                    text += ', profit: ' + str(round(v['profit'], 2))
+                if v['entry_point'] != 0:
+                    text += ', entry point: ' + str(round(v['entry_point'], 2))
+                if v['stop_loss'] != 0:
+                    text += ', stop loss: ' + str(round(v['stop_loss'], 2))
+                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'green', text, 'T', 'black', 25)
                 marks_list.pop(0)
             elif v['signal'] == -2:
-                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'red', 'short trade', 'T', 'black', 25)
+                text = 'trade'
+                if v['profit'] != 0:
+                    text += ', profit: ' + str(round(v['profit'], 2))
+                if v['entry_point'] != 0:
+                    text += ', entry point: ' + str(round(v['entry_point'], 2))
+                if v['stop_loss'] != 0:
+                    text += ', stop loss: ' + str(round(v['stop_loss'], 2))
+                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'red', text, 'T', 'black', 25)
                 marks_list.pop(0)
             elif v['signal'] == 3:
                 response_data = add_mark(response_data, marks_list[0], int(v['date']), 'yellow', 'exit long trade ' + str(round(v['profit'], 2)), 'E', 'black', 25)
@@ -168,19 +203,25 @@ def marks(request):
             elif v['signal'] == -3:
                 response_data = add_mark(response_data, marks_list[0], int(v['date']), 'yellow', 'exit short trade ' + str(round(v['profit'], 2)), 'E', 'black', 25)
                 marks_list.pop(0)
-        if v['entry_point'] != 0:
-            response_data = add_mark(response_data, marks_list[0], int(v['date']), 'orange', 'entry point: ' + str(round(v['entry_point'], 2)), 'E', 'black', 20)
+        if (v['signal'] == 1 or v['signal'] == -1) and v['entry_point'] != 0 and marks_visible:
+            color = 'green'
+            if v['signal'] == -1:
+                color = 'red'
+            response_data = add_mark(response_data, marks_list[0], int(v['date']), color, 'entry point: ' + str(round(v['entry_point'], 2)), 'E', 'black', 20)
             marks_list.pop(0)
-        if v['exit_point'] != 0:
-            response_data = add_mark(response_data, marks_list[0], int(v['date']), 'red', 'exit point: ' + str(round(v['exit_point'], 2)), 'E', 'yellow', 15)
+        if v['exit_point'] != 0 and marks_visible:
+            response_data = add_mark(response_data, marks_list[0], int(v['date']), 'orange', 'exit point: ' + str(round(v['exit_point'], 2)), 'E', 'yellow', 15)
             marks_list.pop(0)
-        if v['entry_position'] != 0:
+        if v['entry_position'] != 0 and marks_visible:
             response_data = add_mark(response_data, marks_list[0], int(v['date']), 'red', 'entry position: ' + str(round(v['entry_position'], 2)), 'E', 'black', 20)
             marks_list.pop(0)
-        if v['stop_loss'] != 0:
-            response_data = add_mark(response_data, marks_list[0], int(v['date']), 'red', 'stop loss: ' + str(round(v['stop_loss'], 2)), 'S', 'white', 20)
+        if (v['signal'] == 1 or v['signal'] == -1) and v['stop_loss'] != 0 and marks_visible:
+            color = 'green'
+            if v['signal'] == -1:
+                color = 'red'
+            response_data = add_mark(response_data, marks_list[0], int(v['date']), color, 'stop loss: ' + str(round(v['stop_loss'], 2)), 'S', 'white', 20)
             marks_list.pop(0)
-        if v['turn_to0'] != 0:
+        if v['turn_to0'] != 0 and marks_visible:
             response_data = add_mark(response_data, marks_list[0], int(v['date']), 'green', 'signal turns to 0', '0', 'white', 20)
             marks_list.pop(0)
 
@@ -201,8 +242,9 @@ def add_mark(response, id, time, color, text, label, labelFontColor, minSize):
     
 
 def import_excel_pandas(request):
-    Candle.objects.all().delete()
     if request.method == 'POST' and request.FILES['myfile']:
+        Candle.objects.all().delete()
+
         myfile = request.FILES['myfile']
         fs = FileSystemStorage()
         filename = fs.save(myfile.name, myfile)
