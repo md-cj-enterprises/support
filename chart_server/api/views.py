@@ -5,12 +5,15 @@ import datetime
 import time
 import pytz
 import pandas as pd
-import os
 from django.core.files.storage import FileSystemStorage
 from .models import Candle
+from .live_nifty_data import LiveNiftyData
 
-print("HEKK")
 marks_visible = True
+live_data = LiveNiftyData()
+live_data.read_data_from_file("/Users/alice/Codes/trading/server/support/chart_server/api/live_nifty_data.xlsx")
+live_data.get_live_data()
+print("START")
 
 def change_marks_visibility(request, template_name="templates/change_marks_visibility.html"):
     global marks_visible
@@ -122,6 +125,7 @@ def history(request):
 
     else:
         response_data['s'] = 'ok'
+        print(request)
         #if countback:
             #obj = Candle.objects.filter(date__lte=to).order_by('-date')[:int(countback)]
         #else:
