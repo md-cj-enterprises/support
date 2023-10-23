@@ -10,9 +10,9 @@ from .models import Candle
 from .live_nifty_data import LiveNiftyData
 
 marks_visible = True
-live_data = LiveNiftyData()
-live_data.read_data_from_file("/Users/alice/Codes/trading/server/support/chart_server/api/live_nifty_data.xlsx")
-live_data.get_live_data()
+
+live_data_thread = LiveNiftyData(1, "LiveNiftyData")
+live_data_thread.start()
 print("START")
 
 def change_marks_visibility(request, template_name="templates/change_marks_visibility.html"):
@@ -36,7 +36,7 @@ def config(request):
     response_data = {}
     response_data['supports_search'] = True
     response_data['supports_group_request'] = False
-    response_data['supports_marks'] = True
+    response_data['supports_marks'] = False
     response_data['supports_timescale_marks'] = False
     response_data['supports_time'] = False
     response_data['has_ticks'] = False
@@ -90,7 +90,6 @@ def symbols(request):
     response_data["type"] = "future"
     response_data["supported_resolutions"] = ["5"]
     response_data["pricescale"] = 100
-    #response_data["ticker"] = "AAPL"
     response_data["logo_urls"] = ["https://s3-symbol-logo.tradingview.com/apple.svg"]
     
     return HttpResponse(json.dumps(response_data), 'application/json')
@@ -100,53 +99,45 @@ def get_time(request):
     return HttpResponse(int(time.mktime(presentDate.timetuple())))
 
 def history(request):
-    symbol = request.GET.get("symbol")
-    fr = request.GET.get("from")
-    to = request.GET.get("to")
-    resolution = request.GET.get("resolution")
+    global live_data_thread
+
+    fr = int(request.GET.get("from"))
+    to = int(request.GET.get("to"))
     #number of bars (higher priority than from) starting with to. If countback is set, from should be ignored
     countback = request.GET.get("countback")
     response_data = {}
     
-    #if countback:
-    #    dates = list(Candle.objects.filter(date__lte=to).order_by('-date').values_list('date', flat=True)[:int(countback)])
-    #else:
-    dates = list(Candle.objects.filter(date__gte=fr, date__lt=to).values_list('date', flat=True))
-        #print("DATES!!!!!!!!!!")
-    #print((dates))
+    values = live_data_thread.get_data()
+    dates = values[(values['timestamp'] >= fr) & (values['timestamp'] < to)]
+    #dates = list(Candle.objects.filter(date__gte=fr, date__lt=to).values_list('date', flat=True))
 
-    if not dates:
+    if len(dates) == 0:
         print("NO DATES")
         response_data['s'] = 'no_data'
-        next_time = list(set(Candle.objects.filter(date__lt=to).order_by('-date').values_list('date', flat=True)[:1]))
+        #next_time = list(set(Candle.objects.filter(date__lt=to).order_by('-date').values_list('date', flat=True)[:1]))
+        next_time = values[values['timestamp'] < to]
         if len(next_time) != 0:
-            next_time_val = next_time[0]
+            next_time_val = next_time.at[len(next_time) - 1, 'timestamp']
             response_data['nextTime'] = next_time_val
 
     else:
         response_data['s'] = 'ok'
         print(request)
-        #if countback:
-            #obj = Candle.objects.filter(date__lte=to).order_by('-date')[:int(countback)]
-        #else:
-        obj = Candle.objects.filter(date__gte=fr, date__lt=to)
-            
-        vals = obj.values()
 
-        vals = sorted(vals, key=lambda d: d['date'])
+        #obj = Candle.objects.filter(date__gte=fr, date__lt=to) 
+        #vals = obj.values()
+        #vals = sorted(vals, key=lambda d: d['date'])
         
-        print("ENDING: "+str(datetime.datetime.fromtimestamp(vals[0]['date']) + datetime.timedelta(hours=5, minutes=30)))
-        print("STARTING: "+str(datetime.datetime.fromtimestamp(vals[len(vals) - 1]['date']) + datetime.timedelta(hours=5, minutes=30)))
-        print("LENGTH: "+str(len(vals)))
+        #print("ENDING: "+str(datetime.datetime.fromtimestamp(dates.at(0, ['timestamp']) + datetime.timedelta(hours=5, minutes=30)))
+        #print("STARTING: "+str(datetime.datetime.fromtimestamp(vals[len(vals) - 1]['date']) + datetime.timedelta(hours=5, minutes=30)))
+        #print("LENGTH: "+str(len(vals)))
 
-        dats = [d['date'] for d in vals]
-        #print(dats)
-        response_data['t'] = [int(d['date']) for d in vals]
-        response_data['c'] = [d['close'] for d in vals]
-        response_data['h'] = [d['high'] for d in vals]
-        response_data['l'] = [d['low'] for d in vals]
-        response_data['o'] = [d['open'] for d in vals]
-        response_data['v'] = [d['volume'] for d in vals]
+        response_data['t'] = dates['timestamp'].tolist()
+        response_data['c'] = dates['close'].tolist()
+        response_data['h'] = dates['high'].tolist()
+        response_data['l'] = dates['low'].tolist()
+        response_data['o'] = dates['open'].tolist()
+        response_data['v'] = (dates['low']*0.01).tolist()
 
     return HttpResponse(json.dumps(response_data), 'application/json')
     
