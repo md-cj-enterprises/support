@@ -9,6 +9,7 @@ from django.core.files.storage import FileSystemStorage
 from .models import Candle
 from .live_nifty_data import LiveNiftyData
 
+
 marks_visible = True
 
 live_data_thread = LiveNiftyData(1, "LiveNiftyData")
@@ -39,7 +40,7 @@ def config(request):
     response_data['supports_marks'] = False
     response_data['supports_timescale_marks'] = False
     response_data['supports_time'] = False
-    response_data['has_ticks'] = False
+    response_data['has_ticks'] = True
     response_data['has_daily'] = False
 
     exchange1 = {}
@@ -108,11 +109,12 @@ def history(request):
     response_data = {}
     
     values = live_data_thread.get_data()
+    #print(values[['date', 'open', 'high', 'low', 'close']])
     dates = values[(values['timestamp'] >= fr) & (values['timestamp'] < to)]
     #dates = list(Candle.objects.filter(date__gte=fr, date__lt=to).values_list('date', flat=True))
 
     if len(dates) == 0:
-        print("NO DATES")
+        #print("NO DATES")
         response_data['s'] = 'no_data'
         #next_time = list(set(Candle.objects.filter(date__lt=to).order_by('-date').values_list('date', flat=True)[:1]))
         next_time = values[values['timestamp'] < to]
@@ -122,7 +124,6 @@ def history(request):
 
     else:
         response_data['s'] = 'ok'
-        print(request)
 
         #obj = Candle.objects.filter(date__gte=fr, date__lt=to) 
         #vals = obj.values()

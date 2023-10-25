@@ -26,6 +26,8 @@ class LiveNiftyData (threading.Thread):
         self.df['exit_point'] = 0
         self.df['stop_loss'] = 0
         self.df['profit'] = 0
+        self.df['timestamp'] = 0
+
     
     def parse(self, msg):   
         self.queueLock.acquire()
@@ -40,7 +42,7 @@ class LiveNiftyData (threading.Thread):
         print("on open")
         correlation_id = "test"
         mode = 1
-        token_list = [{"exchangeType": 13, "tokens": ["5"]}]
+        token_list = [{"exchangeType": 2, "tokens": ["35079"]}]
         self.sws.subscribe(correlation_id, mode, token_list)
 
     def on_error(wsapp, error):
