@@ -3,12 +3,13 @@ import datetime
 import threading
 
 class ProcessLiveData (threading.Thread):
-        def __init__(self, threadID, name, parent):
+        def __init__(self, threadID, name, parent, historical_api):
             threading.Thread.__init__(self)
             self.threadID = threadID
             self.name = name
             self.exitFlag = False
             self.parent = parent
+            self.historical_api = historical_api
 
         def run(self):
             print("Starting " + self.name)

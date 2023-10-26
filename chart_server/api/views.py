@@ -6,11 +6,16 @@ import time
 import pytz
 import pandas as pd
 from django.core.files.storage import FileSystemStorage
+
+from .historical_nifty_data import HistoricalNiftyData
 from .models import Candle
 from .live_nifty_data import LiveNiftyData
 
 
 marks_visible = True
+
+historical_nifty_data = HistoricalNiftyData("/Users/alice/Codes/trading/server/support/chart_server/api/live_nifty_data.xlsx")
+historical_nifty_data.get_historical_data_to_excel()
 
 live_data_thread = LiveNiftyData(1, "LiveNiftyData")
 live_data_thread.start()
