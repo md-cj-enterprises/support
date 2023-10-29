@@ -17,7 +17,7 @@ marks_visible = True
 historical_nifty_data = HistoricalNiftyData("/Users/alice/Codes/trading/server/support/chart_server/api/live_nifty_data.xlsx")
 historical_nifty_data.get_historical_data_to_excel()
 
-live_data_thread = LiveNiftyData(1, "LiveNiftyData")
+live_data_thread = LiveNiftyData(1, "LiveNiftyData", historical_nifty_data)
 live_data_thread.start()
 print("START")
 
@@ -45,7 +45,7 @@ def config(request):
     response_data['supports_marks'] = False
     response_data['supports_timescale_marks'] = False
     response_data['supports_time'] = False
-    response_data['has_ticks'] = True
+    response_data['has_ticks'] = False
     response_data['has_daily'] = False
 
     exchange1 = {}
@@ -109,23 +109,28 @@ def history(request):
 
     fr = int(request.GET.get("from"))
     to = int(request.GET.get("to"))
+    print("REQ: " + str(fr) + " " + str(to))
+
     #number of bars (higher priority than from) starting with to. If countback is set, from should be ignored
     countback = request.GET.get("countback")
     response_data = {}
     
     values = live_data_thread.get_data()
     #print(values[['date', 'open', 'high', 'low', 'close']])
+    #print(str(datetime.datetime.fromtimestamp(fr)) + " " + str(datetime.datetime.fromtimestamp(to)))
+
     dates = values[(values['timestamp'] >= fr) & (values['timestamp'] < to)]
     #dates = list(Candle.objects.filter(date__gte=fr, date__lt=to).values_list('date', flat=True))
 
     if len(dates) == 0:
-        #print("NO DATES")
+        print("NO DATES")
         response_data['s'] = 'no_data'
         #next_time = list(set(Candle.objects.filter(date__lt=to).order_by('-date').values_list('date', flat=True)[:1]))
         next_time = values[values['timestamp'] < to]
         if len(next_time) != 0:
             next_time_val = next_time.at[len(next_time) - 1, 'timestamp']
-            response_data['nextTime'] = next_time_val
+            response_data['nextTime'] = int(next_time_val)
+            print(type(int(next_time_val)))
 
     else:
         response_data['s'] = 'ok'
@@ -137,14 +142,14 @@ def history(request):
         #print("ENDING: "+str(datetime.datetime.fromtimestamp(dates.at(0, ['timestamp']) + datetime.timedelta(hours=5, minutes=30)))
         #print("STARTING: "+str(datetime.datetime.fromtimestamp(vals[len(vals) - 1]['date']) + datetime.timedelta(hours=5, minutes=30)))
         #print("LENGTH: "+str(len(vals)))
-
         response_data['t'] = dates['timestamp'].tolist()
         response_data['c'] = dates['close'].tolist()
         response_data['h'] = dates['high'].tolist()
         response_data['l'] = dates['low'].tolist()
         response_data['o'] = dates['open'].tolist()
-        response_data['v'] = (dates['low']*0.01).tolist()
 
+        #response_data['v'] = (dates['low']*0.01).tolist()
+    print("RESP: " + str(response_data))
     return HttpResponse(json.dumps(response_data), 'application/json')
     
 def marks(request):
@@ -163,22 +168,25 @@ def marks(request):
     response_data['labelFontColor'] = []
     response_data['minSize'] = []
     
-    obj = Candle.objects.filter(date__gte=fr).filter(date__lt=to)
-    vals = obj.values()
-    vals = sorted(vals, key=lambda d: d['date'], reverse=True)
+    #obj = Candle.objects.filter(date__gte=fr).filter(date__lt=to)
+    #vals = obj.values()
+    #vals = sorted(vals, key=lambda d: d['date'], reverse=True)
+
+    values = live_data_thread.get_data()
+    vals = values[(values['timestamp'] >= fr) & (values['timestamp'] < to)]
     jsonDec = json.decoder.JSONDecoder()
 
     for v in vals:
         marks_list = jsonDec.decode(v['mark_index'])
         
-        if v['signal'] != 0:
-            if v['signal'] == 1 and marks_visible:
+        if v['final_signal'] != 0:
+            if v['final_signal'] == 1 and marks_visible:
                 response_data = add_mark(response_data, marks_list[0], int(v['date']), 'green', 'long signal', 'S', 'black', 25)
                 marks_list.pop(0)
-            elif v['signal'] == -1 and marks_visible:
+            elif v['final_signal'] == -1 and marks_visible:
                 response_data = add_mark(response_data, marks_list[0], int(v['date']), 'red', 'short signal', 'S', 'black', 25)
                 marks_list.pop(0)
-            elif v['signal'] == 2:
+            elif v['final_signal'] == 2:
                 text = 'trade'
                 if v['profit'] != 0:
                     text += ', profit: ' + str(round(v['profit'], 2))
@@ -188,7 +196,7 @@ def marks(request):
                     text += ', stop loss: ' + str(round(v['stop_loss'], 2))
                 response_data = add_mark(response_data, marks_list[0], int(v['date']), 'green', text, 'T', 'black', 25)
                 marks_list.pop(0)
-            elif v['signal'] == -2:
+            elif v['final_signal'] == -2:
                 text = 'trade'
                 if v['profit'] != 0:
                     text += ', profit: ' + str(round(v['profit'], 2))
@@ -198,15 +206,15 @@ def marks(request):
                     text += ', stop loss: ' + str(round(v['stop_loss'], 2))
                 response_data = add_mark(response_data, marks_list[0], int(v['date']), 'red', text, 'T', 'black', 25)
                 marks_list.pop(0)
-            elif v['signal'] == 3:
+            elif v['final_signal'] == 3:
                 response_data = add_mark(response_data, marks_list[0], int(v['date']), 'yellow', 'exit long trade ' + str(round(v['profit'], 2)), 'E', 'black', 25)
                 marks_list.pop(0)
-            elif v['signal'] == -3:
+            elif v['final_signal'] == -3:
                 response_data = add_mark(response_data, marks_list[0], int(v['date']), 'yellow', 'exit short trade ' + str(round(v['profit'], 2)), 'E', 'black', 25)
                 marks_list.pop(0)
-        if (v['signal'] == 1 or v['signal'] == -1) and v['entry_point'] != 0 and marks_visible:
+        if (v['final_signal'] == 1 or v['final_signal'] == -1) and v['entry_point'] != 0 and marks_visible:
             color = 'green'
-            if v['signal'] == -1:
+            if v['final_signal'] == -1:
                 color = 'red'
             response_data = add_mark(response_data, marks_list[0], int(v['date']), color, 'entry point: ' + str(round(v['entry_point'], 2)), 'E', 'black', 20)
             marks_list.pop(0)
@@ -216,9 +224,9 @@ def marks(request):
         if v['entry_position'] != 0 and marks_visible:
             response_data = add_mark(response_data, marks_list[0], int(v['date']), 'red', 'entry position: ' + str(round(v['entry_position'], 2)), 'E', 'black', 20)
             marks_list.pop(0)
-        if (v['signal'] == 1 or v['signal'] == -1) and v['stop_loss'] != 0 and marks_visible:
+        if (v['final_signal'] == 1 or v['final_signal'] == -1) and v['stop_loss'] != 0 and marks_visible:
             color = 'green'
-            if v['signal'] == -1:
+            if v['final_signal'] == -1:
                 color = 'red'
             response_data = add_mark(response_data, marks_list[0], int(v['date']), color, 'stop loss: ' + str(round(v['stop_loss'], 2)), 'S', 'white', 20)
             marks_list.pop(0)

@@ -13,9 +13,12 @@ class HistoricalNiftyData:
         self.login()
 
     def get_historical_data_to_excel(self):
-        
+
         fromdate = self.get_last_timestamp_from_file()
-        data = self.get_historical_data(fromdate)
+        todate = datetime.datetime.now(pytz.timezone("Asia/Kolkata")) - datetime.timedelta(minutes=5)
+
+        data = self.get_historical_data(fromdate, todate)
+
         print(data)
         with pd.ExcelWriter(self.file_name, mode="a", engine="openpyxl", if_sheet_exists="overlay") as writer:
             data.to_excel(writer, sheet_name="Sheet1", startrow=self.len_df, header=False, index=False)  
@@ -23,7 +26,7 @@ class HistoricalNiftyData:
 
     def login(self):
         otp_token = pyotp.TOTP("TYDDSO524WNIPNWULFYQHWTSIM").now()
-        api_key = "tYWBL5N3"
+        api_key = "7CLGxF6D"
         self.user_id = "S51426088"
         pin = "2638"
 
@@ -37,17 +40,18 @@ class HistoricalNiftyData:
         sws = SmartWebSocketV2(authToken, api_key, self.user_id, feedToken)
 
 
-    def get_historical_data(self, fromdate):
+    def get_historical_data(self, fromdate, todate):
 
-        todate = datetime.datetime.now(pytz.timezone("Asia/Kolkata")) - datetime.timedelta(minutes=5)
         data = pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close'])
 
-        while (todate > datetime.datetime.strptime("2023-01-02 09:15", '%Y-%m-%d %H:%M').replace(tzinfo=pytz.timezone("Asia/Kolkata"))):
+        while (todate.replace(tzinfo=pytz.timezone("Asia/Kolkata")) > fromdate.replace(tzinfo=pytz.timezone("Asia/Kolkata"))):
             print("New request. End date: " + todate.strftime("%Y-%m-%d %H:%M"))
+            print(str(fromdate)[:-3])
+            print(todate.strftime("%Y-%m-%d %H:%M"))
             try:
                 historicParam={
                 "exchange": "NFO",
-                "symboltoken": "35079",
+                "symboltoken": "57920",
                 "interval": "FIVE_MINUTE",
                 "fromdate": str(fromdate)[:-3],
                 "todate": todate.strftime("%Y-%m-%d %H:%M")
@@ -58,7 +62,6 @@ class HistoricalNiftyData:
                     break
                 data_piece = self.add_api_response_to_dataframe(message['data'])
                 data = pd.concat([data_piece, data], ignore_index=True)
-                print(data)
 
                 todate = data.at[0, 'date'].replace(tzinfo=pytz.timezone("Asia/Kolkata")) - datetime.timedelta(minutes=5)
             except Exception as e:

@@ -6,13 +6,16 @@ from SmartApi.smartWebSocketV2 import SmartWebSocketV2
 import queue
 import threading
 from .process_live_data import ProcessLiveData
+import datetime
+import pytz
 
 class LiveNiftyData (threading.Thread):
 
-    def __init__(self, threadID, name):
+    def __init__(self, threadID, name, historical_api):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.name = name
+        self.historical_api = historical_api
     
     def run(self):
         self.read_data_from_file("/Users/alice/Codes/trading/server/support/chart_server/api/live_nifty_data.xlsx")
@@ -20,13 +23,28 @@ class LiveNiftyData (threading.Thread):
 
     def read_data_from_file(self, file_name):
         self.df = pd.read_excel(file_name, parse_dates=True)
-        self.df['signal'] = 0
-        self.df['final_signal'] = 0
-        self.df['entry_point'] = 0
-        self.df['exit_point'] = 0
-        self.df['stop_loss'] = 0
+        self.df['timestamp'] = self.df["date"]
+        local = pytz.timezone("Asia/Kolkata")
+        #self.df.timestamp =  self.df.timestamp.apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
+        self.df.timestamp = self.df.timestamp.apply(lambda x: local.localize(x, is_dst=None))
+        self.df.timestamp = self.df.timestamp.apply(lambda x:  int(round(x.timestamp())))
+
+
         self.df['profit'] = 0
-        self.df['timestamp'] = 0
+        self.df['final_signal'] = 0
+        self.df['exit_point'] = 0
+        self.df['signal'] = 0
+        self.df['entry_point'] = 0
+        self.df['entry_position'] = 0
+        self.df['stop_loss'] = 0
+        self.df['signal_type'] = 0
+        self.df['entry_point_temp'] = 0
+        self.df['stop_loss_temp'] = 0
+        self.df['turn_to0'] = 0
+        self.df['trade_type'] = 0
+        self.df['exit_type'] = 0
+        self.df['exit_position'] = 0
+        #self.df['timestamp'] = 0
 
     
     def parse(self, msg):   
@@ -42,7 +60,7 @@ class LiveNiftyData (threading.Thread):
         print("on open")
         correlation_id = "test"
         mode = 1
-        token_list = [{"exchangeType": 2, "tokens": ["35079"]}]
+        token_list = [{"exchangeType": 2, "tokens": ["57920"]}]
         self.sws.subscribe(correlation_id, mode, token_list)
 
     def on_error(wsapp, error):
@@ -72,7 +90,7 @@ class LiveNiftyData (threading.Thread):
 
         # Create new threads
         for tName in threadList:
-            thread = ProcessLiveData(threadID, tName, self)
+            thread = ProcessLiveData(threadID, tName, self, self.historical_api)
             thread.start()
             threads.append(thread)
             threadID += 1
