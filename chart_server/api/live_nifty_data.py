@@ -6,8 +6,9 @@ from SmartApi.smartWebSocketV2 import SmartWebSocketV2
 import queue
 import threading
 from .process_live_data import ProcessLiveData
-import datetime
 import pytz
+import os.path
+import numpy as np
 
 class LiveNiftyData (threading.Thread):
 
@@ -16,37 +17,80 @@ class LiveNiftyData (threading.Thread):
         self.threadID = threadID
         self.name = name
         self.historical_api = historical_api
-    
+        self.max_mark_id = 0
+        self.open_file_with_data("./historical_nifty_data.xlsx")
+
     def run(self):
-        self.read_data_from_file("/Users/alice/Codes/trading/server/support/chart_server/api/live_nifty_data.xlsx")
+        self.read_data_from_file(self.file_name)
+        for i in range(len(self.df)):
+            self.add_marks_ids_to_df(i)
+        
         self.get_live_data()
 
     def read_data_from_file(self, file_name):
+        self.file_name = file_name
         self.df = pd.read_excel(file_name, parse_dates=True)
         self.df['timestamp'] = self.df["date"]
         local = pytz.timezone("Asia/Kolkata")
         #self.df.timestamp =  self.df.timestamp.apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
         self.df.timestamp = self.df.timestamp.apply(lambda x: local.localize(x, is_dst=None))
         self.df.timestamp = self.df.timestamp.apply(lambda x:  int(round(x.timestamp())))
+        self.df['marks_ids'] = -1
+        self.df['marks_ids'] = self.df['marks_ids'].astype('object')
 
 
-        self.df['profit'] = 0
-        self.df['final_signal'] = 0
-        self.df['exit_point'] = 0
-        self.df['signal'] = 0
-        self.df['entry_point'] = 0
-        self.df['entry_position'] = 0
-        self.df['stop_loss'] = 0
-        self.df['signal_type'] = 0
-        self.df['entry_point_temp'] = 0
-        self.df['stop_loss_temp'] = 0
-        self.df['turn_to0'] = 0
-        self.df['trade_type'] = 0
-        self.df['exit_type'] = 0
-        self.df['exit_position'] = 0
-        #self.df['timestamp'] = 0
 
-    
+    def add_marks_ids_to_df(self, i):
+        marks_list = []
+        if self.df.at[i, 'final_signal'] != 0 and not pd.isnull(self.df.at[i, 'final_signal']):
+            marks_list.append(self.max_mark_id)
+            self.max_mark_id+=1
+            if self.df.at[i, 'final_signal'] == 3 or self.df.at[i, 'final_signal'] == -3:
+                marks_list.append(self.max_mark_id)
+                self.max_mark_id+=1
+        if self.df.at[i, 'exit_point'] != 0 and not pd.isnull(self.df.at[i, 'exit_point']):
+            marks_list.append(self.max_mark_id)
+            self.max_mark_id+=1
+        if self.df.at[i, 'entry_position'] != 0 and not pd.isnull(self.df.at[i, 'entry_position']):
+            marks_list.append(self.max_mark_id)
+            self.max_mark_id+=1
+        if self.df.at[i, 'stop_loss'] != 0 and not pd.isnull(self.df.at[i, 'stop_loss']):
+            marks_list.append(self.max_mark_id)
+            self.max_mark_id+=1
+        if self.df.at[i, 'entry_point']  != 0 and not pd.isnull(self.df.at[i, 'entry_point']):
+            marks_list.append(self.max_mark_id)
+            self.max_mark_id+=1
+        if self.df.at[i, 'turn_to0'] != 0 and not pd.isnull(self.df.at[i, 'turn_to0']):
+            marks_list.append(self.max_mark_id)
+            self.max_mark_id+=1
+        if len(marks_list) != 0:
+            self.df.at[i, 'marks_ids'] = marks_list
+        else:
+            self.df.at[i, 'marks_ids'] = -1
+
+
+    def open_file_with_data(self, file_name):
+        if os.path.isfile(file_name):
+            self.read_data_from_file(file_name)
+        else:
+            self.df = pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close'])
+            self.df['profit'] = 0
+            self.df['final_signal'] = 0
+            self.df['exit_point'] = 0
+            self.df['signal'] = 0
+            self.df['entry_point'] = 0
+            self.df['entry_position'] = 0
+            self.df['stop_loss'] = 0
+            self.df['signal_type'] = 0
+            self.df['entry_point_temp'] = 0
+            self.df['stop_loss_temp'] = 0
+            self.df['turn_to0'] = 0
+            self.df['trade_type'] = 0
+            self.df['exit_type'] = 0
+            self.df['exit_position'] = 0
+
+            self.df.to_excel(file_name, index=False)
+
     def parse(self, msg):   
         self.queueLock.acquire()
         self.workQueue.put(msg)
@@ -62,6 +106,7 @@ class LiveNiftyData (threading.Thread):
         mode = 1
         token_list = [{"exchangeType": 2, "tokens": ["57920"]}]
         self.sws.subscribe(correlation_id, mode, token_list)
+
 
     def on_error(wsapp, error):
         print(error)
@@ -82,19 +127,14 @@ class LiveNiftyData (threading.Thread):
     
     def get_live_data(self):
         print("Starting reading live data...")
-        threadList = ["Thread-1"]
+
         self.queueLock = threading.Lock()
         self.workQueue = queue.Queue(10)
-        threads = []
         threadID = 1
 
-        # Create new threads
-        for tName in threadList:
-            thread = ProcessLiveData(threadID, tName, self, self.historical_api)
-            thread.start()
-            threads.append(thread)
-            threadID += 1
-
+        # Create new thread
+        thread = ProcessLiveData(threadID, 'ProcessThread', self, self.historical_api)
+        thread.start()
         self.login()
 
     def login(self):
@@ -116,7 +156,9 @@ class LiveNiftyData (threading.Thread):
         self.sws.on_data = self.on_data
         self.sws.on_error = self.on_error
         self.sws.on_close = self.on_close
+        print("login")
         self.sws.connect()
+
 
             
     def get_data(self):

@@ -5,6 +5,7 @@ from SmartApi import SmartConnect
 from SmartApi.smartWebSocketV2 import SmartWebSocketV2
 import time
 import pytz
+import os
 
 class HistoricalNiftyData:
 
@@ -14,14 +15,18 @@ class HistoricalNiftyData:
 
     def get_historical_data_to_excel(self):
 
-        fromdate = self.get_last_timestamp_from_file()
-        todate = datetime.datetime.now(pytz.timezone("Asia/Kolkata")) - datetime.timedelta(minutes=5)
-
+        fromdate = self.get_last_timestamp_from_file().replace(tzinfo=pytz.timezone("Asia/Kolkata"))
+        todate = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
         data = self.get_historical_data(fromdate, todate)
 
+
         print(data)
+        if (self.len_df == 0):
+            startrow = 1
+        else:
+            startrow = self.len_df
         with pd.ExcelWriter(self.file_name, mode="a", engine="openpyxl", if_sheet_exists="overlay") as writer:
-            data.to_excel(writer, sheet_name="Sheet1", startrow=self.len_df, header=False, index=False)  
+            data.to_excel(writer, sheet_name="Sheet1", startrow=startrow, header=False, index=False)  
 
 
     def login(self):
@@ -44,16 +49,14 @@ class HistoricalNiftyData:
 
         data = pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close'])
 
-        while (todate.replace(tzinfo=pytz.timezone("Asia/Kolkata")) > fromdate.replace(tzinfo=pytz.timezone("Asia/Kolkata"))):
+        while todate > fromdate:
             print("New request. End date: " + todate.strftime("%Y-%m-%d %H:%M"))
-            print(str(fromdate)[:-3])
-            print(todate.strftime("%Y-%m-%d %H:%M"))
             try:
                 historicParam={
                 "exchange": "NFO",
                 "symboltoken": "57920",
                 "interval": "FIVE_MINUTE",
-                "fromdate": str(fromdate)[:-3],
+                "fromdate": str(fromdate)[:-9],
                 "todate": todate.strftime("%Y-%m-%d %H:%M")
                 }
                 message = self.obj.getCandleData(historicParam)

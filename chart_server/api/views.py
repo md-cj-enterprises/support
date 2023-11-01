@@ -6,6 +6,7 @@ import time
 import pytz
 import pandas as pd
 from django.core.files.storage import FileSystemStorage
+import copy
 
 from .historical_nifty_data import HistoricalNiftyData
 from .models import Candle
@@ -14,10 +15,11 @@ from .live_nifty_data import LiveNiftyData
 
 marks_visible = True
 
-historical_nifty_data = HistoricalNiftyData("/Users/alice/Codes/trading/server/support/chart_server/api/live_nifty_data.xlsx")
-historical_nifty_data.get_historical_data_to_excel()
-
+historical_nifty_data = HistoricalNiftyData("./historical_nifty_data.xlsx")
 live_data_thread = LiveNiftyData(1, "LiveNiftyData", historical_nifty_data)
+
+
+historical_nifty_data.get_historical_data_to_excel()
 live_data_thread.start()
 print("START")
 
@@ -42,7 +44,7 @@ def config(request):
     response_data = {}
     response_data['supports_search'] = True
     response_data['supports_group_request'] = False
-    response_data['supports_marks'] = False
+    response_data['supports_marks'] = True
     response_data['supports_timescale_marks'] = False
     response_data['supports_time'] = False
     response_data['has_ticks'] = False
@@ -109,39 +111,26 @@ def history(request):
 
     fr = int(request.GET.get("from"))
     to = int(request.GET.get("to"))
-    print("REQ: " + str(fr) + " " + str(to))
 
     #number of bars (higher priority than from) starting with to. If countback is set, from should be ignored
     countback = request.GET.get("countback")
     response_data = {}
     
     values = live_data_thread.get_data()
-    #print(values[['date', 'open', 'high', 'low', 'close']])
-    #print(str(datetime.datetime.fromtimestamp(fr)) + " " + str(datetime.datetime.fromtimestamp(to)))
 
     dates = values[(values['timestamp'] >= fr) & (values['timestamp'] < to)]
-    #dates = list(Candle.objects.filter(date__gte=fr, date__lt=to).values_list('date', flat=True))
 
     if len(dates) == 0:
-        print("NO DATES")
+        #print("NO DATES")
         response_data['s'] = 'no_data'
         #next_time = list(set(Candle.objects.filter(date__lt=to).order_by('-date').values_list('date', flat=True)[:1]))
         next_time = values[values['timestamp'] < to]
         if len(next_time) != 0:
             next_time_val = next_time.at[len(next_time) - 1, 'timestamp']
             response_data['nextTime'] = int(next_time_val)
-            print(type(int(next_time_val)))
 
     else:
         response_data['s'] = 'ok'
-
-        #obj = Candle.objects.filter(date__gte=fr, date__lt=to) 
-        #vals = obj.values()
-        #vals = sorted(vals, key=lambda d: d['date'])
-        
-        #print("ENDING: "+str(datetime.datetime.fromtimestamp(dates.at(0, ['timestamp']) + datetime.timedelta(hours=5, minutes=30)))
-        #print("STARTING: "+str(datetime.datetime.fromtimestamp(vals[len(vals) - 1]['date']) + datetime.timedelta(hours=5, minutes=30)))
-        #print("LENGTH: "+str(len(vals)))
         response_data['t'] = dates['timestamp'].tolist()
         response_data['c'] = dates['close'].tolist()
         response_data['h'] = dates['high'].tolist()
@@ -149,7 +138,6 @@ def history(request):
         response_data['o'] = dates['open'].tolist()
 
         #response_data['v'] = (dates['low']*0.01).tolist()
-    print("RESP: " + str(response_data))
     return HttpResponse(json.dumps(response_data), 'application/json')
     
 def marks(request):
@@ -157,7 +145,6 @@ def marks(request):
     symbol = request.GET.get("symbol")
     fr = int(request.GET.get("from"))
     to = int(request.GET.get("to"))
-    resolution = request.GET.get("resolution")
     
     response_data = {}
     response_data['id'] = []
@@ -168,74 +155,71 @@ def marks(request):
     response_data['labelFontColor'] = []
     response_data['minSize'] = []
     
-    #obj = Candle.objects.filter(date__gte=fr).filter(date__lt=to)
-    #vals = obj.values()
-    #vals = sorted(vals, key=lambda d: d['date'], reverse=True)
 
     values = live_data_thread.get_data()
-    vals = values[(values['timestamp'] >= fr) & (values['timestamp'] < to)]
-    jsonDec = json.decoder.JSONDecoder()
+    vals = values[(values['timestamp'] >= fr) & (values['timestamp'] <= to)]
 
-    for v in vals:
-        marks_list = jsonDec.decode(v['mark_index'])
-        
-        if v['final_signal'] != 0:
-            if v['final_signal'] == 1 and marks_visible:
-                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'green', 'long signal', 'S', 'black', 25)
-                marks_list.pop(0)
-            elif v['final_signal'] == -1 and marks_visible:
-                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'red', 'short signal', 'S', 'black', 25)
-                marks_list.pop(0)
-            elif v['final_signal'] == 2:
-                text = 'trade'
-                if v['profit'] != 0:
-                    text += ', profit: ' + str(round(v['profit'], 2))
-                if v['entry_point'] != 0:
-                    text += ', entry point: ' + str(round(v['entry_point'], 2))
-                if v['stop_loss'] != 0:
-                    text += ', stop loss: ' + str(round(v['stop_loss'], 2))
-                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'green', text, 'T', 'black', 25)
-                marks_list.pop(0)
-            elif v['final_signal'] == -2:
-                text = 'trade'
-                if v['profit'] != 0:
-                    text += ', profit: ' + str(round(v['profit'], 2))
-                if v['entry_point'] != 0:
-                    text += ', entry point: ' + str(round(v['entry_point'], 2))
-                if v['stop_loss'] != 0:
-                    text += ', stop loss: ' + str(round(v['stop_loss'], 2))
-                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'red', text, 'T', 'black', 25)
-                marks_list.pop(0)
-            elif v['final_signal'] == 3:
-                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'yellow', 'exit long trade ' + str(round(v['profit'], 2)), 'E', 'black', 25)
-                marks_list.pop(0)
-            elif v['final_signal'] == -3:
-                response_data = add_mark(response_data, marks_list[0], int(v['date']), 'yellow', 'exit short trade ' + str(round(v['profit'], 2)), 'E', 'black', 25)
-                marks_list.pop(0)
-        if (v['final_signal'] == 1 or v['final_signal'] == -1) and v['entry_point'] != 0 and marks_visible:
-            color = 'green'
-            if v['final_signal'] == -1:
-                color = 'red'
-            response_data = add_mark(response_data, marks_list[0], int(v['date']), color, 'entry point: ' + str(round(v['entry_point'], 2)), 'E', 'black', 20)
-            marks_list.pop(0)
-        if v['exit_point'] != 0 and marks_visible:
-            response_data = add_mark(response_data, marks_list[0], int(v['date']), 'orange', 'exit point: ' + str(round(v['exit_point'], 2)), 'E', 'yellow', 15)
-            marks_list.pop(0)
-        if v['entry_position'] != 0 and marks_visible:
-            response_data = add_mark(response_data, marks_list[0], int(v['date']), 'red', 'entry position: ' + str(round(v['entry_position'], 2)), 'E', 'black', 20)
-            marks_list.pop(0)
-        if (v['final_signal'] == 1 or v['final_signal'] == -1) and v['stop_loss'] != 0 and marks_visible:
-            color = 'green'
-            if v['final_signal'] == -1:
-                color = 'red'
-            response_data = add_mark(response_data, marks_list[0], int(v['date']), color, 'stop loss: ' + str(round(v['stop_loss'], 2)), 'S', 'white', 20)
-            marks_list.pop(0)
-        if v['turn_to0'] != 0 and marks_visible:
-            response_data = add_mark(response_data, marks_list[0], int(v['date']), 'green', 'signal turns to 0', '0', 'white', 20)
-            marks_list.pop(0)
+    for v in vals.itertuples():
+        if v.marks_ids == -1 and not pd.isnull(v.marks_ids):
+            continue
+        marks_list = copy.copy(v.marks_ids)
 
+        if v.final_signal != 0:
+            if v.final_signal == 1 and marks_visible:
+                response_data = add_mark(response_data, marks_list[0], int(v.timestamp), 'green', 'long signal', 'S', 'black', 25)
+                marks_list.pop(0)
+            elif v.final_signal == -1 and marks_visible:
+                print(v)
+                response_data = add_mark(response_data, marks_list[0], int(v.timestamp), 'red', 'short signal', 'S', 'black', 25)
+                marks_list.pop(0)
+            elif v.final_signal == 2:
+                text = 'trade'
+                if v.profit != 0:
+                    text += ', profit: ' + str(round(v.profit, 2))
+                if v.entry_point != 0:
+                    text += ', entry point: ' + str(round(v.entry_point, 2))
+                if v.stop_loss != 0:
+                    text += ', stop loss: ' + str(round(v.stop_loss, 2))
+                response_data = add_mark(response_data, marks_list[0], int(v.timestamp), 'green', text, 'T', 'black', 25)
+                marks_list.pop(0)
+            elif v.final_signal == -2:
+                text = 'trade'
+                if v.profit != 0:
+                    text += ', profit: ' + str(round(v.profit, 2))
+                if v.entry_point != 0:
+                    text += ', entry point: ' + str(round(v.entry_point, 2))
+                if v.stop_loss != 0:
+                    text += ', stop loss: ' + str(round(v.stop_loss, 2))
+                response_data = add_mark(response_data, marks_list[0], int(v.timestamp), 'red', text, 'T', 'black', 25)
+                marks_list.pop(0)
+            elif v.final_signal == 3:
+                response_data = add_mark(response_data, marks_list[0], int(v.timestamp), 'yellow', 'exit long trade ' + str(round(v.profit, 2)), 'E', 'black', 25)
+                marks_list.pop(0)
+            elif v.final_signal == -3:
+                response_data = add_mark(response_data, marks_list[0], int(v.timestamp), 'yellow', 'exit short trade ' + str(round(v.profit, 2)), 'E', 'black', 25)
+                marks_list.pop(0)
+        if (v.final_signal == 1 or v.final_signal == -1) and v.entry_point != 0 and not pd.isnull(v.entry_point) and marks_visible:
+            color = 'green'
+            if v.final_signal == -1:
+                color = 'red'
+            response_data = add_mark(response_data, marks_list[0], int(v.timestamp), color, 'entry point: ' + str(round(v.entry_point, 2)), 'E', 'black', 20)
+            marks_list.pop(0)
+        if v.exit_point != 0 and not pd.isnull(v.exit_point) and marks_visible:
+            response_data = add_mark(response_data, marks_list[0], int(v.timestamp), 'orange', 'exit point: ' + str(round(v.exit_point, 2)), 'E', 'yellow', 15)
+            marks_list.pop(0)
+        if v.entry_position != 0 and not pd.isnull(v.entry_position) and marks_visible:
+            response_data = add_mark(response_data, marks_list[0], int(v.timestamp), 'red', 'entry position: ' + str(round(v.entry_position, 2)), 'E', 'black', 20)
+            marks_list.pop(0)
+        if (v.final_signal == 1 or v.final_signal == -1) and v.stop_loss != 0 and not pd.isnull(v.stop_loss) and marks_visible:
+            color = 'green'
+            if v.final_signal == -1:
+                color = 'red'
+            response_data = add_mark(response_data, marks_list[0], int(v.timestamp), color, 'stop loss: ' + str(round(v.stop_loss, 2)), 'S', 'white', 20)
+            marks_list.pop(0)
+        if v.turn_to0 != 0 and not pd.isnull(v.turn_to0)  and marks_visible:
+            response_data = add_mark(response_data, marks_list[0], int(v.timestamp), 'green', 'signal turns to 0', '0', 'white', 20)
+            marks_list.pop(0)
         
-            
     return HttpResponse(json.dumps(response_data), 'application/json')
 
 def add_mark(response, id, time, color, text, label, labelFontColor, minSize):
@@ -251,7 +235,7 @@ def add_mark(response, id, time, color, text, label, labelFontColor, minSize):
     
 
 def import_excel_pandas(request):
-    if request.method == 'POST' and request.FILES['myfile']:
+    if request.method == 'POST'  and request.FILES['myfile']:
         Candle.objects.all().delete()
 
         myfile = request.FILES['myfile']
