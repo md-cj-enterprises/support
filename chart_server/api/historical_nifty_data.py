@@ -60,7 +60,7 @@ class HistoricalNiftyData:
                 "todate": todate.strftime("%Y-%m-%d %H:%M")
                 }
                 message = self.obj.getCandleData(historicParam)
-                print(message)
+                #print(message)
                 if (message['data'] == None):
                     break
                 data_piece = self.add_api_response_to_dataframe(message['data'])

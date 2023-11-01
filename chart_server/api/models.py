@@ -1,5 +1,4 @@
 from django.db import models
-from django_unixdatetimefield import UnixDateTimeField
 
 class Candle(models.Model):
   date = models.FloatField()

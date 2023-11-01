@@ -42,34 +42,43 @@ class LiveNiftyData (threading.Thread):
 
     def add_marks_ids_to_df(self, i):
         marks_list = []
+        temp_mark = self.max_mark_id
         if self.df.at[i, 'final_signal'] != 0 and not pd.isnull(self.df.at[i, 'final_signal']):
-            marks_list.append(self.max_mark_id)
-            self.max_mark_id+=1
+            marks_list.append(temp_mark)
+            temp_mark+=1
             if self.df.at[i, 'final_signal'] == 3 or self.df.at[i, 'final_signal'] == -3:
-                marks_list.append(self.max_mark_id)
-                self.max_mark_id+=1
+                marks_list.append(temp_mark)
+                temp_mark+=1
         if self.df.at[i, 'exit_point'] != 0 and not pd.isnull(self.df.at[i, 'exit_point']):
-            marks_list.append(self.max_mark_id)
-            self.max_mark_id+=1
+            marks_list.append(temp_mark)
+            temp_mark+=1
         if self.df.at[i, 'entry_position'] != 0 and not pd.isnull(self.df.at[i, 'entry_position']):
-            marks_list.append(self.max_mark_id)
-            self.max_mark_id+=1
+            marks_list.append(temp_mark)
+            temp_mark+=1
         if self.df.at[i, 'stop_loss'] != 0 and not pd.isnull(self.df.at[i, 'stop_loss']):
-            marks_list.append(self.max_mark_id)
-            self.max_mark_id+=1
+            marks_list.append(temp_mark)
+            temp_mark+=1
         if self.df.at[i, 'entry_point']  != 0 and not pd.isnull(self.df.at[i, 'entry_point']):
-            marks_list.append(self.max_mark_id)
-            self.max_mark_id+=1
+            marks_list.append(temp_mark)
+            temp_mark+=1
         if self.df.at[i, 'turn_to0'] != 0 and not pd.isnull(self.df.at[i, 'turn_to0']):
-            marks_list.append(self.max_mark_id)
-            self.max_mark_id+=1
-        if len(marks_list) != 0:
-            self.df.at[i, 'marks_ids'] = marks_list
-        else:
-            self.df.at[i, 'marks_ids'] = -1
+            marks_list.append(temp_mark)
+            temp_mark+=1
 
+        if len(marks_list) == 0:
+            self.df.at[i, 'marks_ids'] = -1
+            return
+        elif self.df.at[i, 'marks_ids'] == -1 or pd.isnull(self.df.at[i, 'marks_ids']):
+            self.df.at[i, 'marks_ids'] = marks_list
+            self.max_mark_id = temp_mark
+            return
+        elif len(self.df.at[i, 'marks_ids']) != len(marks_list):
+            self.df.at[i, 'marks_ids'] = marks_list
+            self.max_mark_id = temp_mark
+            return
 
     def open_file_with_data(self, file_name):
+        self.file_name = file_name
         if os.path.isfile(file_name):
             self.read_data_from_file(file_name)
         else:

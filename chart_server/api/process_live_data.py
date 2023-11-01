@@ -87,9 +87,6 @@ class ProcessLiveData (threading.Thread):
                         self.parent.df.loc[i, 'close'] = close_price
                         self.parent.df.loc[i, 'high'] = high_price
                         self.parent.df.loc[i, 'low'] = low_price
-                        
-                        self.parent.df.loc[i - 1, 'final_signal'] = 1
-
 
                         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                         print(self.parent.df[['date', 'h_open', 'h_high', 'h_low', 'final_signal']])
@@ -115,32 +112,33 @@ class ProcessLiveData (threading.Thread):
                         data = self.historical_api.get_historical_data(timestamp_five_mins - datetime.timedelta(minutes=10), todate)
                         print("GOT HISORICAL CANDLES: ")
                         print(data)
+                        if (len(data) != 1):
 
-                        #if data.at[len(data) - 1] == timestamp_five_mins:
-                        need_request = False
+                            #if data.at[len(data) - 1] == timestamp_five_mins:
+                            need_request = False
 
-                        l = len(self.parent.df) - 2
-                        ld = len(data) - 2
+                            l = len(self.parent.df) - 2
+                            ld = len(data) - 2
 
-                        self.parent.df.loc[l, 'open'] = data.at[ld, 'open']
-                        self.parent.df.loc[l, 'close'] = data.at[ld, 'close']
-                        self.parent.df.loc[l, 'high'] = data.at[ld, 'high']
-                        self.parent.df.loc[l, 'low'] = data.at[ld, 'low']
+                            self.parent.df.loc[l, 'open'] = data.at[ld, 'open']
+                            self.parent.df.loc[l, 'close'] = data.at[ld, 'close']
+                            self.parent.df.loc[l, 'high'] = data.at[ld, 'high']
+                            self.parent.df.loc[l, 'low'] = data.at[ld, 'low']
 
-                        self.parent.df.loc[l + 1, 'open'] = data.at[ld + 1, 'open']
+                            self.parent.df.loc[l + 1, 'open'] = data.at[ld + 1, 'open']
 
-                        print("FINISHED")
-                        print(self.parent.df)
-                        print(self.parent.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
-)
-                        if not is_written:
-                            startrow = len(self.parent.df) - 1
-                            is_written = True
-                        else:
-                            startrow = len(self.parent.df) - 1
-                        with pd.ExcelWriter("./historical_nifty_data.xlsx", mode="a", engine="openpyxl", if_sheet_exists="overlay") as writer:
-                            self.parent.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]].to_excel(writer, sheet_name="Sheet1", startrow=startrow, header=False, index=False)  
-                        print("WROTE TO FILE")
+                            print("FINISHED")
+                            print(self.parent.df)
+                            print(self.parent.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
+    )
+                            if not is_written:
+                                startrow = len(self.parent.df) - 1
+                                is_written = True
+                            else:
+                                startrow = len(self.parent.df) - 1
+                            with pd.ExcelWriter("./historical_nifty_data.xlsx", mode="a", engine="openpyxl", if_sheet_exists="overlay") as writer:
+                                self.parent.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]].to_excel(writer, sheet_name="Sheet1", startrow=startrow, header=False, index=False)  
+                            print("WROTE TO FILE")
 
                     if not is_beginning:
                         self.parent.df = strategy_impl.cj_strategy_base_line(self.parent.df, len(self.parent.df) - 2, self.index, ltp)
