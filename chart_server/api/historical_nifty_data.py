@@ -30,6 +30,7 @@ class HistoricalNiftyData:
 
 
     def login(self):
+        print("TRING TO LOGIN")
         otp_token = pyotp.TOTP("TYDDSO524WNIPNWULFYQHWTSIM").now()
         api_key = "7CLGxF6D"
         self.user_id = "S51426088"
@@ -37,6 +38,7 @@ class HistoricalNiftyData:
 
         self.obj = SmartConnect(api_key)
         data = self.obj.generateSession(self.user_id, pin, otp_token)
+        print("GENERATED SESSION")
         refreshToken = data['data']['refreshToken']
         feedToken = self.obj.getfeedToken()
         authToken = data['data']['jwtToken']
@@ -46,7 +48,6 @@ class HistoricalNiftyData:
 
 
     def get_historical_data(self, fromdate, todate):
-        time.sleep(1)
 
         data = pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close'])
 
