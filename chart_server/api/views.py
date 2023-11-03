@@ -138,6 +138,7 @@ def history(request):
         response_data['o'] = dates['open'].tolist()
 
         #response_data['v'] = (dates['low']*0.01).tolist()
+    print(response_data)
     return HttpResponse(json.dumps(response_data), 'application/json')
     
 def marks(request):

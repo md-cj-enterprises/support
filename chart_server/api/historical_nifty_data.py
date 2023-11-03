@@ -48,6 +48,7 @@ class HistoricalNiftyData:
 
 
     def get_historical_data(self, fromdate, todate):
+        
 
         data = pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close'])
 
