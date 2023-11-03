@@ -99,11 +99,11 @@ class ProcessLiveData (threading.Thread):
                     high_price = max(high_price, ltp)
 
                     #if not is_beginning:
-                    l = len(self.parent.df) - 1
-                    self.parent.df.loc[l, 'close'] = close_price
-                    self.parent.df.loc[l, 'high'] = high_price
-                    self.parent.df.loc[l, 'low'] = low_price
-                    self.parent.df.loc[l, 'timestamp'] = int(data_dict['exchange_timestamp'])/1000
+                    #l = len(self.parent.df) - 1
+                    #self.parent.df.loc[l, 'close'] = close_price
+                    #self.parent.df.loc[l, 'high'] = high_price
+                    #self.parent.df.loc[l, 'low'] = low_price
+                    #self.parent.df.loc[l, 'timestamp'] = int(data_dict['exchange_timestamp'])/1000
 
                 #print("finished data")
                     if datetime.datetime.timestamp(timestamp_five_mins) - data_dict['exchange_timestamp']/1000.0 <= 298 and datetime.datetime.timestamp(timestamp_five_mins) - data_dict['exchange_timestamp']/1000.0 > 295 and need_request == True:
@@ -118,7 +118,7 @@ class ProcessLiveData (threading.Thread):
                         if (len(data) != 1):
                             
                             ld = len(data) - 2
-                            self.parent.df.loc[l + 1, 'open'] = data.at[ld + 1, 'open']
+                            #self.parent.df.loc[l + 1, 'open'] = data.at[ld + 1, 'open']
                         
                         else:
                             ld = len(data) - 1
@@ -133,12 +133,13 @@ class ProcessLiveData (threading.Thread):
                         print(self.parent.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
 )
                         if not is_written:
-                            startrow = len(self.parent.df) - 1
+                            startrow = len(self.parent.df)
                             is_written = True
                         else:
-                            startrow = len(self.parent.df) - 1
-                        with pd.ExcelWriter("./historical_nifty_data.xlsx", mode="a", engine="openpyxl", if_sheet_exists="overlay") as writer:
-                            self.parent.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]].to_excel(writer, sheet_name="Sheet1", startrow=startrow, header=False, index=False)  
+                            startrow = len(self.parent.df) + 1
+                        
+                        self.parent.ws.range('A' + str(startrow)).options(expand='table', index = False, header = False).value = self.parent.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
+
                         print("WROTE TO FILE")
 
                     if not is_beginning:

@@ -12,12 +12,13 @@ import numpy as np
 
 class LiveNiftyData (threading.Thread):
 
-    def __init__(self, threadID, name, historical_api):
+    def __init__(self, threadID, name, historical_api, ws):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.name = name
         self.historical_api = historical_api
         self.max_mark_id = 0
+        self.ws = ws
         self.open_file_with_data("./historical_nifty_data.xlsx")
 
     def run(self):
@@ -29,7 +30,9 @@ class LiveNiftyData (threading.Thread):
 
     def read_data_from_file(self, file_name):
         self.file_name = file_name
-        self.df = pd.read_excel(file_name, parse_dates=True)
+        self.df = self.ws['A1'].expand().options(pd.DataFrame, index = False).value
+        print("from live")
+        print(self.df)
         self.df['timestamp'] = self.df["date"]
         local = pytz.timezone("Asia/Kolkata")
         #self.df.timestamp =  self.df.timestamp.apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
@@ -79,7 +82,10 @@ class LiveNiftyData (threading.Thread):
 
     def open_file_with_data(self, file_name):
         self.file_name = file_name
-        if os.path.isfile(file_name):
+
+        rng = self.ws.range('A1')
+        print(rng.value)
+        if (rng.value == 'date'):
             self.read_data_from_file(file_name)
         else:
             self.df = pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close'])
@@ -98,7 +104,8 @@ class LiveNiftyData (threading.Thread):
             self.df['exit_type'] = 0
             self.df['exit_position'] = 0
 
-            self.df.to_excel(file_name, index=False)
+            self.ws.range('A1').options(expand='table', index = False).value = self.df
+
 
     def parse(self, msg):   
         self.queueLock.acquire()

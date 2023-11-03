@@ -139,5 +139,5 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGGING_CONFIG = None
+#LOGGING_CONFIG = None
 

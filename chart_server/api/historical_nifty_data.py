@@ -5,13 +5,14 @@ from SmartApi import SmartConnect
 from SmartApi.smartWebSocketV2 import SmartWebSocketV2
 import time
 import pytz
-import os
+import xlwings as xw
 
 class HistoricalNiftyData:
 
-    def __init__(self, file_name):
+    def __init__(self, file_name, ws):
         self.file_name = file_name
         self.login()
+        self.ws = ws
 
     def get_historical_data_to_excel(self):
 
@@ -22,15 +23,15 @@ class HistoricalNiftyData:
 
         print(data)
         if (self.len_df == 0):
-            startrow = 1
+            startrow = 2
         else:
             startrow = self.len_df
-        with pd.ExcelWriter(self.file_name, mode="a", engine="openpyxl", if_sheet_exists="overlay") as writer:
-            data.to_excel(writer, sheet_name="Sheet1", startrow=startrow, header=False, index=False)  
+
+        self.ws["A"+str(startrow)].options(pd.DataFrame, header=False, index=False, expand='table').value = data
 
 
     def login(self):
-        print("TRING TO LOGIN")
+        print("TRYING TO LOGIN")
         otp_token = pyotp.TOTP("TYDDSO524WNIPNWULFYQHWTSIM").now()
         api_key = "7CLGxF6D"
         self.user_id = "S51426088"
@@ -98,13 +99,16 @@ class HistoricalNiftyData:
 
 
     def get_last_timestamp_from_file(self):
-        df = pd.read_excel(self.file_name, parse_dates=True)
+
+        df = self.ws['A1'].expand().options(pd.DataFrame).value
         print(df)
         self.len_df = len(df)
+                    
         if self.len_df == 0:
+            self.len_df = 0
             return datetime.datetime.strptime("2023-01-01 09:15", '%Y-%m-%d %H:%M')
 
-        last_timestamp = df.at[len(df) - 1, 'date']
+        last_timestamp = self.ws.range('A' + str(self.len_df)).value
         print(last_timestamp)
         return last_timestamp
          

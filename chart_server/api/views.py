@@ -7,6 +7,9 @@ import pytz
 import pandas as pd
 from django.core.files.storage import FileSystemStorage
 import copy
+import xlwings as xw
+import os.path
+import openpyxl
 
 from .historical_nifty_data import HistoricalNiftyData
 from .models import Candle
@@ -15,8 +18,19 @@ from .live_nifty_data import LiveNiftyData
 
 marks_visible = True
 
-historical_nifty_data = HistoricalNiftyData("./historical_nifty_data.xlsx")
-live_data_thread = LiveNiftyData(1, "LiveNiftyData", historical_nifty_data)
+if not os.path.isfile("./historical_nifty_data_live_update.xlsx"):
+    print("creating file")
+    wb = openpyxl.Workbook()
+    wb.save("./historical_nifty_data_live_update.xlsx")
+    wb.close()
+
+
+wb = xw.Book('historical_nifty_data_live_update.xlsx')
+worksheet = wb.sheets('Sheet')
+
+
+historical_nifty_data = HistoricalNiftyData("./historical_nifty_data.xlsx", worksheet)
+live_data_thread = LiveNiftyData(1, "LiveNiftyData", historical_nifty_data, worksheet)
 
 
 historical_nifty_data.get_historical_data_to_excel()
@@ -138,7 +152,7 @@ def history(request):
         response_data['o'] = dates['open'].tolist()
 
         #response_data['v'] = (dates['low']*0.01).tolist()
-    print(response_data)
+    #print(response_data)
     return HttpResponse(json.dumps(response_data), 'application/json')
     
 def marks(request):
