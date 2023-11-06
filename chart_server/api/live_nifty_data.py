@@ -7,26 +7,29 @@ import queue
 import threading
 from .process_live_data import ProcessLiveData
 import pytz
-import os.path
+import xlwings as xw
 import numpy as np
-import pythoncom
-import win32com.client
+#import pythoncom
+#import win32com.client
 
 
 class LiveNiftyData (threading.Thread):
 
-    def __init__(self, threadID, name, historical_api, ws):
+    def __init__(self, threadID, name, historical_api):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.name = name
         self.historical_api = historical_api
         self.max_mark_id = 0
-        self.ws = ws
+        wb = xw.Book('historical_nifty_data_live_update.xlsx')
+        worksheet = wb.sheets('Sheet')
+
+        self.ws = worksheet
         self.open_file_with_data("./historical_nifty_data.xlsx")
 
     def run(self):
-        xl=win32com.client.Dispatch("Excel.Application",pythoncom.CoInitialize())
-        pythoncom.CoInitialize()
+        #xl=win32com.client.Dispatch("Excel.Application",pythoncom.CoInitialize())
+        #pythoncom.CoInitialize()
 
         self.read_data_from_file(self.file_name)
         for i in range(len(self.df)):
