@@ -16,7 +16,6 @@ import win32com.client
 class LiveNiftyData (threading.Thread):
 
     def __init__(self, threadID, name, historical_api, ws):
-        xl=win32com.client.Dispatch("Excel.Application",pythoncom.CoInitialize())
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.name = name
@@ -26,6 +25,9 @@ class LiveNiftyData (threading.Thread):
         self.open_file_with_data("./historical_nifty_data.xlsx")
 
     def run(self):
+        xl=win32com.client.Dispatch("Excel.Application",pythoncom.CoInitialize())
+        pythoncom.CoInitialize()
+
         self.read_data_from_file(self.file_name)
         for i in range(len(self.df)):
             self.add_marks_ids_to_df(i)
