@@ -142,7 +142,7 @@ class ProcessLiveData (threading.Thread):
                             startrow = len(self.parent.df)
                             is_written = True
                         else:
-                            startrow = len(self.parent.df) + 1
+                            startrow = len(self.parent.df)
                         
                         self.ws.range('A' + str(startrow)).options(expand='table', index = False, header = False).value = self.parent.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
 
