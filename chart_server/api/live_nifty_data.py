@@ -10,6 +10,8 @@ import pytz
 import os.path
 import numpy as np
 import pythoncom
+import win32com.client
+
 
 class LiveNiftyData (threading.Thread):
 
