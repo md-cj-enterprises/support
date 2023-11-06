@@ -2,6 +2,7 @@ import pandas as pd
 import datetime
 import threading
 import pytz
+import xlwings as xw
 
 from .strategy_implementation import StrategyImplementation
 
@@ -22,6 +23,11 @@ class ProcessLiveData (threading.Thread):
 
 
         def run(self):
+            wb = xw.Book('historical_nifty_data_live_update.xlsx')
+            worksheet = wb.sheets('Sheet')
+
+            self.ws = worksheet
+
             print("Starting " + self.name)
             self.process_data(self.name)
             print("Exiting " + self.name)
@@ -138,7 +144,7 @@ class ProcessLiveData (threading.Thread):
                         else:
                             startrow = len(self.parent.df) + 1
                         
-                        self.parent.ws.range('A' + str(startrow)).options(expand='table', index = False, header = False).value = self.parent.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
+                        self.ws.range('A' + str(startrow)).options(expand='table', index = False, header = False).value = self.parent.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
 
                         print("WROTE TO FILE")
 

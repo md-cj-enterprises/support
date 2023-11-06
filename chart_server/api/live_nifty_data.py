@@ -23,8 +23,6 @@ class LiveNiftyData (threading.Thread):
         self.max_mark_id = 0
 
     def run(self):
-        #xl=win32com.client.Dispatch("Excel.Application",pythoncom.CoInitialize())
-        #pythoncom.CoInitialize()
         wb = xw.Book('historical_nifty_data_live_update.xlsx')
         worksheet = wb.sheets('Sheet')
 
