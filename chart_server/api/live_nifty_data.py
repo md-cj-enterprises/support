@@ -9,10 +9,12 @@ from .process_live_data import ProcessLiveData
 import pytz
 import os.path
 import numpy as np
+import pythoncom
 
 class LiveNiftyData (threading.Thread):
 
     def __init__(self, threadID, name, historical_api, ws):
+        xl=win32com.client.Dispatch("Excel.Application",pythoncom.CoInitialize())
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.name = name
