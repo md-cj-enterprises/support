@@ -34,8 +34,8 @@ live_data_thread = LiveNiftyData(1, "LiveNiftyData", historical_nifty_data)
 
 
 historical_nifty_data.get_historical_data_to_excel()
-wb.save()
-wb.close()
+#wb.save()
+#wb.close()
 live_data_thread.start()
 print("START")
 
