@@ -153,7 +153,7 @@ class LiveNiftyData (threading.Thread):
         print("Starting reading live data...")
 
         self.queueLock = threading.Lock()
-        self.workQueue = queue.Queue(10)
+        self.workQueue = queue.Queue(10000)
         threadID = 1
 
         # Create new thread
@@ -181,7 +181,8 @@ class LiveNiftyData (threading.Thread):
         self.sws.on_error = self.on_error
         self.sws.on_close = self.on_close
         print("login")
-        self.sws.connect()
+        while True:
+            self.sws.connect()
 
 
             
