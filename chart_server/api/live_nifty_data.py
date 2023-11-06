@@ -21,15 +21,16 @@ class LiveNiftyData (threading.Thread):
         self.name = name
         self.historical_api = historical_api
         self.max_mark_id = 0
+
+    def run(self):
+        #xl=win32com.client.Dispatch("Excel.Application",pythoncom.CoInitialize())
+        #pythoncom.CoInitialize()
         wb = xw.Book('historical_nifty_data_live_update.xlsx')
         worksheet = wb.sheets('Sheet')
 
         self.ws = worksheet
         self.open_file_with_data("./historical_nifty_data.xlsx")
 
-    def run(self):
-        #xl=win32com.client.Dispatch("Excel.Application",pythoncom.CoInitialize())
-        #pythoncom.CoInitialize()
 
         self.read_data_from_file(self.file_name)
         for i in range(len(self.df)):
