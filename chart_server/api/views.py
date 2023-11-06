@@ -30,7 +30,7 @@ worksheet = wb.sheets('Sheet')
 
 
 historical_nifty_data = HistoricalNiftyData("./historical_nifty_data.xlsx", worksheet)
-live_data_thread = LiveNiftyData(1, "LiveNiftyData", historical_nifty_data, worksheet)
+live_data_thread = LiveNiftyData(1, "LiveNiftyData", historical_nifty_data)
 
 
 historical_nifty_data.get_historical_data_to_excel()
