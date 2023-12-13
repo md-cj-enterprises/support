@@ -58,7 +58,7 @@ class HistoricalNiftyData:
             try:
                 historicParam={
                 "exchange": "NFO",
-                "symboltoken": "57920",
+                "symboltoken": "63197",
                 "interval": "FIVE_MINUTE",
                 "fromdate": str(fromdate)[:-9],
                 "todate": todate.strftime("%Y-%m-%d %H:%M")

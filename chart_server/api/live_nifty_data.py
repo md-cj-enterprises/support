@@ -128,7 +128,7 @@ class LiveNiftyData (threading.Thread):
         print("on open")
         correlation_id = "test"
         mode = 1
-        token_list = [{"exchangeType": 2, "tokens": ["57920"]}]
+        token_list = [{"exchangeType": 2, "tokens": ["63197"]}]
         self.sws.subscribe(correlation_id, mode, token_list)
 
 
