@@ -114,6 +114,8 @@ class ProcessLiveData (threading.Thread):
                 #print("finished data")
                     if datetime.datetime.timestamp(timestamp_five_mins) - data_dict['exchange_timestamp']/1000.0 <= 298 and datetime.datetime.timestamp(timestamp_five_mins) - data_dict['exchange_timestamp']/1000.0 > 295 and need_request == True:
 
+                        if (timestamp_five_mins.hour == 9 and timestamp_five_mins.minute == 15 and datetime.datetime.timestamp(timestamp_five_mins) - data_dict['exchange_timestamp']/1000.0 <= 294):
+                            continue
                         todate = datetime.datetime.now(pytz.timezone("Asia/Kolkata")) + datetime.timedelta(minutes=1)
                         data = self.historical_api.get_historical_data(timestamp_five_mins - datetime.timedelta(minutes=10), todate)
                         print("GOT HISORICAL CANDLES: ")

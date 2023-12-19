@@ -19,14 +19,6 @@ class StrategyImplementation:
         self.stop_loss = 0
         self.p3_switch = 'on'
 
-
-        p = 120 
-        q = 320
-        r = 120
-        s = 320
-        #df['date'] = df['date'].dt.strftime('%Y-%m-%d %H:%M:%S')
-        #self.df = self.cj_strategy_base_line(self.df)
-
     def get_df(self):
         return self.df
 
@@ -241,7 +233,7 @@ class StrategyImplementation:
                     self.signal_type = 'p2'
                     
             elif self.signal == 1:
-                if ltp >= self. entry_point:
+                if ltp >= self.entry_point:
                     self.signal = 2
                     df.at[i, 'final_signal'] = 2
                     df.at[i, 'entry_point'] = self.entry_point
