@@ -177,13 +177,13 @@ class StrategyImplementation:
             
         if (self.signal != 2) and (self.signal != -2):
             if self.p3_switch == 'on':
-                if (self.signal_3(df, index, i) == 1) and (ltp >= 1.004*df.at[i,'top_leading_line' + str(index)]):
+                if (ltp != False) and (self.signal_3(df, index, i) == 1) and (ltp >= 1.004*df.at[i,'top_leading_line' + str(index)]):
                     self.signal = 2
                     df.at[i, 'final_signal'] = 2
                     self.entry_point = 1.004*df.at[i,'top_leading_line' + str(index)]
                     df.at[i, 'entry_point'] = self.entry_point
                     self.signal_type = 0
-                elif (self.signal_3(df, index, i) == -1) and (ltp <= 0.996*df.at[i,'bottom_leading_line' + str(index)]):
+                elif (ltp != False) and (self.signal_3(df, index, i) == -1) and (ltp <= 0.996*df.at[i,'bottom_leading_line' + str(index)]):
                     self.signal = -2
                     df.at[i, 'final_signal'] = -2
                     self.entry_point = 0.996*df.at[i-1,'bottom_leading_line' + str(index)]
@@ -233,7 +233,7 @@ class StrategyImplementation:
                     self.signal_type = 'p2'
                     
             elif self.signal == 1:
-                if ltp >= self.entry_point:
+                if ltp != False and ltp >= self.entry_point:
                     self.signal = 2
                     df.at[i, 'final_signal'] = 2
                     df.at[i, 'entry_point'] = self.entry_point
@@ -260,7 +260,7 @@ class StrategyImplementation:
                     
                 
             elif self.signal == -1:
-                if ltp <= self.entry_point:
+                if ltp != False and ltp <= self.entry_point:
                     self.signal = -2
                     df.at[i, 'final_signal'] = -2
                     df.at[i, 'entry_point'] = self.entry_point

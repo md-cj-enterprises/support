@@ -9,9 +9,6 @@ from .process_live_data import ProcessLiveData
 import pytz
 import xlwings as xw
 import numpy as np
-#import pythoncom
-#import win32com.client
-
 
 class LiveNiftyData (threading.Thread):
 
@@ -24,7 +21,7 @@ class LiveNiftyData (threading.Thread):
 
     def run(self):
         wb = xw.Book('historical_nifty_data_live_update.xlsx')
-        worksheet = wb.sheets('Sheet')
+        worksheet = wb.sheets(self.name)
 
         self.ws = worksheet
         self.open_file_with_data("./historical_nifty_data.xlsx")
@@ -92,7 +89,7 @@ class LiveNiftyData (threading.Thread):
         self.file_name = file_name
 
         rng = self.ws.range('A1')
-        print(rng.value)
+        print("!!!!rng.value")
         if (rng.value == 'date'):
             self.read_data_from_file(file_name)
         else:
@@ -111,7 +108,7 @@ class LiveNiftyData (threading.Thread):
             self.df['trade_type'] = 0
             self.df['exit_type'] = 0
             self.df['exit_position'] = 0
-
+            print("HELLO?")
             self.ws.range('A1').options(expand='table', index = False).value = self.df
 
 

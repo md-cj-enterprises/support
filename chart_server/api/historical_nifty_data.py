@@ -7,18 +7,31 @@ import time
 import pytz
 import xlwings as xw
 
+from api.strategy_implementation import StrategyImplementation
+
 class HistoricalNiftyData:
 
-    def __init__(self, file_name, ws):
-        self.file_name = file_name
+    def __init__(self):
         self.login()
-        self.ws = ws
 
-    def get_historical_data_to_excel(self):
+        self.p = 120 
+        self.q = 320
+        self.r = 120
+        self.s = 320
+        self.index = 1
 
-        fromdate = self.get_last_timestamp_from_file().replace(tzinfo=pytz.timezone("Asia/Kolkata"))
+
+    def get_historical_data_to_excel(self, symboltoken, ws):
+
+        fromdate = self.get_last_timestamp_from_file(ws).replace(tzinfo=pytz.timezone("Asia/Kolkata"))
         todate = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
-        data = self.get_historical_data(fromdate, todate)
+        data = self.get_historical_data(fromdate, todate, symboltoken)
+
+        strategy_impl = StrategyImplementation(data)
+        data = strategy_impl.calculate_heiken_values(data)
+        data = strategy_impl.ichimoku_cloud(data, self.p, self.q, self.r, self.s, self.index)
+        for i in range (3, len(data)):
+            data = strategy_impl.cj_strategy_base_line(data, i, self.index, False)
 
 
         print(data)
@@ -27,7 +40,7 @@ class HistoricalNiftyData:
         else:
             startrow = self.len_df
 
-        self.ws["A"+str(startrow)].options(pd.DataFrame, header=False, index=False, expand='table').value = data
+        ws["A"+str(startrow)].options(pd.DataFrame, header=False, index=False, expand='table').value = data
 
 
     def login(self):
@@ -48,17 +61,18 @@ class HistoricalNiftyData:
         sws = SmartWebSocketV2(authToken, api_key, self.user_id, feedToken)
 
 
-    def get_historical_data(self, fromdate, todate):
+    def get_historical_data(self, fromdate, todate, symboltoken):
         
 
         data = pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close'])
 
         while todate > fromdate:
+            print("New request. Token: " + str(symboltoken))
             print("New request. End date: " + todate.strftime("%Y-%m-%d %H:%M"))
             try:
                 historicParam={
                 "exchange": "NFO",
-                "symboltoken": "63197",
+                "symboltoken": symboltoken,
                 "interval": "FIVE_MINUTE",
                 "fromdate": str(fromdate)[:-9],
                 "todate": todate.strftime("%Y-%m-%d %H:%M")
@@ -98,17 +112,17 @@ class HistoricalNiftyData:
         return data_piece
 
 
-    def get_last_timestamp_from_file(self):
+    def get_last_timestamp_from_file(self, ws):
 
-        df = self.ws['A1'].expand().options(pd.DataFrame).value
+        df = ws['A1'].expand().options(pd.DataFrame).value
         print(df)
         self.len_df = len(df)
                     
         if self.len_df == 0:
             self.len_df = 0
-            return datetime.datetime.strptime("2023-01-01 09:15", '%Y-%m-%d %H:%M')
+            return datetime.datetime.strptime("2023-09-01 09:15", '%Y-%m-%d %H:%M')
 
-        last_timestamp = self.ws.range('A' + str(self.len_df)).value
+        last_timestamp = ws.range('A' + str(self.len_df)).value
         print(last_timestamp)
         return last_timestamp
          
