@@ -17,26 +17,31 @@ from .live_nifty_data import LiveNiftyData
 
 
 marks_visible = True
+token_list = ["63488", "63803", "63345"]
 
 if not os.path.isfile("./historical_nifty_data_live_update.xlsx"):
     print("creating file")
     wb = openpyxl.Workbook()
+
     wb.save("./historical_nifty_data_live_update.xlsx")
     wb.close()
 
 
 wb = xw.Book('historical_nifty_data_live_update.xlsx')
-worksheet = wb.sheets('Sheet')
 
+historical_nifty_data = HistoricalNiftyData()
+sheets = [s.name for s in wb.sheets]
 
-historical_nifty_data = HistoricalNiftyData("./historical_nifty_data.xlsx", worksheet)
-live_data_thread = LiveNiftyData(1, "LiveNiftyData", historical_nifty_data)
+for i in range(len(token_list)):
+    if not token_list[i] in sheets:
+        wb.sheets.add(token_list[i])
 
+    live_data_thread = LiveNiftyData(i, token_list[i], historical_nifty_data)
+    historical_nifty_data.get_historical_data_to_excel(token_list[i], wb.sheets(token_list[i]))
+    live_data_thread.start()
 
-historical_nifty_data.get_historical_data_to_excel()
 #wb.save()
 #wb.close()
-live_data_thread.start()
 print("START")
 
 def change_marks_visibility(request, template_name="templates/change_marks_visibility.html"):
