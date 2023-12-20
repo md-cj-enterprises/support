@@ -2,19 +2,24 @@ import pandas as pd
 
 
 class StrategyImplementation:
-    def __init__(self, df):
+    def __init__(self, df, is_historical):
         self.df = df
         df.index = range(len(df))
         # Enter Ichimoku values here:
 
         self.entry_point = 0
         self.exit_point = 0
-        # entry_point_in_trade = 0
         self.profit = 0
         self.trades = 0
         self.signal = 0
-        # in_trade_signal = 0
-        # base_line_exit_signal = 0
+        if not is_historical:
+            signals_list = df.index[abs(df['final_signal']) == 1].tolist()
+            last_signal = signals_list[len(signals_list) - 1]
+
+            turn_to0_list = df.index[df['turn_to0'] == 1].tolist()
+            last_turn_to0 = turn_to0_list[len(turn_to0_list) - 1]
+            if (last_signal > last_turn_to0):
+                self.signal = df.at[last_signal, 'final_signal']
         self.signal_type = 0
         self.stop_loss = 0
         self.p3_switch = 'on'
@@ -219,6 +224,7 @@ class StrategyImplementation:
                 elif self.signal_2(df, index, i) == 1:
                     self.entry_point = 1.0005 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high'])
                     #stop_loss = 0.996 * entry_point
+
                     df.at[i, 'final_signal'] = 1
                     #df.at[i, 'stop_loss'] = stop_loss
                     self.signal = 1
@@ -241,10 +247,12 @@ class StrategyImplementation:
                 elif df.at[i, 'h_close'] < df.at[i,'top_leading_line' + str(index)]:
                     self.signal = 0
                     df.at[i, 'final_signal'] = 0
+                    df.at[i, 'turn_to0'] = 1
                     self.signal_type = 0
                 elif (self.signal_type == 'p1') and (self.signal_2(df, index, i) == 1):
                     self.entry_point = 1.0005 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high'])
                     #stop_loss = 0.996 * entry_point
+
                     df.at[i, 'final_signal'] = 1
                     #df.at[i, 'stop_loss'] = stop_loss
                     self.signal = 1
@@ -252,6 +260,7 @@ class StrategyImplementation:
                 elif (self.signal_type == 'p2') and (self.signal_1(df, index, i) == 1):
                     self.entry_point = 1.0005 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high'])
                     #stop_loss = 0.996 * entry_point
+
                     df.at[i, 'final_signal'] = 1
                     #df.at[i, 'stop_loss'] = stop_loss
                     self.signal = 1
@@ -268,6 +277,7 @@ class StrategyImplementation:
                 elif df.at[i, 'h_close'] > df.at[i,'bottom_leading_line' + str(index)]:
                     self.signal = 0
                     df.at[i, 'final_signal'] = 0
+                    df.at[i, 'turn_to0'] = 1
                     self.signal_type = 0
                 elif (self.signal_type == 'p1') and (self.signal_2(df, index, i) == -1):
                     self.entry_point = 0.9995 * min(df.at[i, 'h_low'], df.at[i-1, 'h_low'], df.at[i-2, 'h_low'], df.at[i-3, 'h_low'])

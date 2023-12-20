@@ -20,6 +20,10 @@ class HistoricalNiftyData:
         self.s = 320
         self.index = 1
 
+    def concat_excel_and_api(self, excel_df, api_df):
+        start_date = api_df.at[0, 'date']
+        index_in_excel_df = excel_df.index[excel_df['date'] == str(start_date)].tolist()[0]
+        return pd.concat([excel_df[0:index_in_excel_df], api_df], ignore_index=True)
 
     def get_historical_data_to_excel(self, symboltoken, ws):
 
@@ -27,20 +31,43 @@ class HistoricalNiftyData:
         todate = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
         data = self.get_historical_data(fromdate, todate, symboltoken)
 
-        strategy_impl = StrategyImplementation(data)
+        rng = ws.range('A1')
+        if (rng.value == 'date'):
+            df = ws['A1'].expand().options(pd.DataFrame, index = False).value
+            data = self.concat_excel_and_api(df, data)
+            #data = pd.concat([df, data], ignore_index=True)
+        else:
+            data['profit'] = 0
+            data['final_signal'] = 0
+            data['exit_point'] = 0
+            data['signal'] = 0
+            data['entry_point'] = 0
+            data['entry_position'] = 0
+            data['stop_loss'] = 0
+            data['signal_type'] = 0
+            data['entry_point_temp'] = 0
+            data['stop_loss_temp'] = 0
+            data['turn_to0'] = 0
+            data['trade_type'] = 0
+            data['exit_type'] = 0
+            data['exit_position'] = 0
+
+
+        strategy_impl = StrategyImplementation(data, True)
         data = strategy_impl.calculate_heiken_values(data)
         data = strategy_impl.ichimoku_cloud(data, self.p, self.q, self.r, self.s, self.index)
         for i in range (3, len(data)):
             data = strategy_impl.cj_strategy_base_line(data, i, self.index, False)
-
+        data = data.replace(0, "")
 
         print(data)
-        if (self.len_df == 0):
-            startrow = 2
-        else:
-            startrow = self.len_df
+        #if (self.len_df == 0):
+        startrow = 1
+        #else:
+            #startrow = self.len_df
+        
 
-        ws["A"+str(startrow)].options(pd.DataFrame, header=False, index=False, expand='table').value = data
+        ws["A"+str(startrow)].options(pd.DataFrame, header=True, index=False, expand='table').value = data[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']]
 
 
     def login(self):
@@ -109,13 +136,14 @@ class HistoricalNiftyData:
             data_piece.loc[index, 'high'] = i[2]
             data_piece.loc[index, 'low'] = i[3]
             data_piece.loc[index, 'close'] = i[4]
+        print("PIECE")
+        print(data_piece)
         return data_piece
 
 
     def get_last_timestamp_from_file(self, ws):
 
         df = ws['A1'].expand().options(pd.DataFrame).value
-        print(df)
         self.len_df = len(df)
                     
         if self.len_df == 0:
@@ -123,7 +151,6 @@ class HistoricalNiftyData:
             return datetime.datetime.strptime("2023-09-01 09:15", '%Y-%m-%d %H:%M')
 
         last_timestamp = ws.range('A' + str(self.len_df)).value
-        print(last_timestamp)
         return last_timestamp
          
 

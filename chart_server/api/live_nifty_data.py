@@ -35,9 +35,7 @@ class LiveNiftyData (threading.Thread):
 
     def read_data_from_file(self, file_name):
         self.file_name = file_name
-        self.df = self.ws['A1'].expand().options(pd.DataFrame, index = False).value
-        print("from live")
-        print(self.df)
+        self.df = self.ws['A1'].expand().options(pd.DataFrame, index = False, header = True).value
         self.df['timestamp'] = self.df["date"]
         local = pytz.timezone("Asia/Kolkata")
         #self.df.timestamp =  self.df.timestamp.apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
@@ -87,29 +85,7 @@ class LiveNiftyData (threading.Thread):
 
     def open_file_with_data(self, file_name):
         self.file_name = file_name
-
-        rng = self.ws.range('A1')
-        print("!!!!rng.value")
-        if (rng.value == 'date'):
-            self.read_data_from_file(file_name)
-        else:
-            self.df = pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close'])
-            self.df['profit'] = 0
-            self.df['final_signal'] = 0
-            self.df['exit_point'] = 0
-            self.df['signal'] = 0
-            self.df['entry_point'] = 0
-            self.df['entry_position'] = 0
-            self.df['stop_loss'] = 0
-            self.df['signal_type'] = 0
-            self.df['entry_point_temp'] = 0
-            self.df['stop_loss_temp'] = 0
-            self.df['turn_to0'] = 0
-            self.df['trade_type'] = 0
-            self.df['exit_type'] = 0
-            self.df['exit_position'] = 0
-            print("HELLO?")
-            self.ws.range('A1').options(expand='table', index = False).value = self.df
+        self.read_data_from_file(file_name)
 
 
     def parse(self, msg):   
@@ -151,10 +127,10 @@ class LiveNiftyData (threading.Thread):
 
         self.queueLock = threading.Lock()
         self.workQueue = queue.Queue(10000)
-        threadID = 1
+        threadID = self.threadID
 
         # Create new thread
-        thread = ProcessLiveData(threadID, 'ProcessThread', self, self.historical_api)
+        thread = ProcessLiveData(self.threadID, self.name, self, self.historical_api)
         thread.start()
         self.login()
 

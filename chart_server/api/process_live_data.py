@@ -53,7 +53,7 @@ class ProcessLiveData (threading.Thread):
                 else:
                     timestamp_five_mins = timestamp_five_mins.replace(minute=(timestamp_five_mins.minute//5 + 1)*5, second = 0, microsecond=0)
             
-            strategy_impl = StrategyImplementation(self.parent.df)
+            strategy_impl = StrategyImplementation(self.parent.df, False)
 
             while not self.exitFlag:
                 self.parent.acquire_lock()
@@ -99,7 +99,7 @@ class ProcessLiveData (threading.Thread):
 
                         need_request = True
 
-                    print(str(pd.to_datetime(int(data_dict['exchange_timestamp'])/1000, unit='s').replace(microsecond=0, nanosecond=0)+datetime.timedelta(hours=5, minutes=30)) + " " + str(ltp))
+                    print(str(pd.to_datetime(int(data_dict['exchange_timestamp'])/1000, unit='s').replace(microsecond=0, nanosecond=0)+datetime.timedelta(hours=5, minutes=30)) + " " + str(ltp) + " " + data_dict["token"])
                     close_price = ltp
                     low_price = min(low_price, ltp)
                     high_price = max(high_price, ltp)
@@ -117,7 +117,7 @@ class ProcessLiveData (threading.Thread):
                         if (timestamp_five_mins.hour == 9 and timestamp_five_mins.minute == 15 and datetime.datetime.timestamp(timestamp_five_mins) - data_dict['exchange_timestamp']/1000.0 <= 294):
                             continue
                         todate = datetime.datetime.now(pytz.timezone("Asia/Kolkata")) + datetime.timedelta(minutes=1)
-                        data = self.historical_api.get_historical_data(timestamp_five_mins - datetime.timedelta(minutes=10), todate)
+                        data = self.historical_api.get_historical_data(timestamp_five_mins - datetime.timedelta(minutes=10), todate, self.name)
                         print("GOT HISORICAL CANDLES: ")
                         print(data)
                         need_request = False
