@@ -6,10 +6,11 @@ from SmartApi.smartWebSocketV2 import SmartWebSocketV2
 import time
 import pytz
 import xlwings as xw
+import threading
 
 from api.strategy_implementation import StrategyImplementation
 
-class HistoricalNiftyData:
+class HistoricalNiftyData(threading.Thread):
 
     def __init__(self):
         self.login()
@@ -19,6 +20,10 @@ class HistoricalNiftyData:
         self.r = 120
         self.s = 320
         self.index = 1
+        self.queueLock = threading.Lock()
+
+
+        self.last_call = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).timestamp()
 
     def concat_excel_and_api(self, excel_df, api_df):
         start_date = api_df.at[0, 'date']
@@ -89,13 +94,17 @@ class HistoricalNiftyData:
 
 
     def get_historical_data(self, fromdate, todate, symboltoken):
-        
+        self.queueLock.acquire()
+
+        while datetime.datetime.now(pytz.timezone("Asia/Kolkata")).timestamp() - self.last_call < 0.4:
+            continue
+
 
         data = pd.DataFrame(columns=['date', 'open', 'high', 'low', 'close'])
 
         while todate > fromdate:
             print("New request. Token: " + str(symboltoken))
-            print("New request. End date: " + todate.strftime("%Y-%m-%d %H:%M"))
+            #print("New request. End date: " + todate.strftime("%Y-%m-%d %H:%M"))
             try:
                 historicParam={
                 "exchange": "NFO",
@@ -115,14 +124,16 @@ class HistoricalNiftyData:
             except Exception as e:
                 print("Historic Api failed: {}".format(e.message))
             time.sleep(0.34)
-
-        print("Finished reading data")
+        self.last_call = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).timestamp()
+        #print("Finished reading data")
         try:
             logout=self.obj.terminateSession(self.user_id)
             print("Logout Successfull")
         except Exception as e:
             print("Logout failed: {}".format(e.message))
-        
+        self.queueLock.release()
+
+
         return data
 
 
@@ -136,8 +147,8 @@ class HistoricalNiftyData:
             data_piece.loc[index, 'high'] = i[2]
             data_piece.loc[index, 'low'] = i[3]
             data_piece.loc[index, 'close'] = i[4]
-        print("PIECE")
-        print(data_piece)
+        #print("PIECE")
+        #print(data_piece)
         return data_piece
 
 
@@ -148,7 +159,7 @@ class HistoricalNiftyData:
                     
         if self.len_df == 0:
             self.len_df = 0
-            return datetime.datetime.strptime("2023-09-01 09:15", '%Y-%m-%d %H:%M')
+            return datetime.datetime.strptime("2023-11-21 09:15", '%Y-%m-%d %H:%M')
 
         last_timestamp = ws.range('A' + str(self.len_df)).value
         return last_timestamp

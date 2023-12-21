@@ -12,14 +12,19 @@ class StrategyImplementation:
         self.profit = 0
         self.trades = 0
         self.signal = 0
+        print(not is_historical)
         if not is_historical:
-            signals_list = df.index[abs(df['final_signal']) == 1].tolist()
-            last_signal = signals_list[len(signals_list) - 1]
+            signals_list = df.index[(df['final_signal'] == 1) | (df['final_signal'] == -1)].tolist()
+            if len(signals_list) != 0:
+                last_signal = signals_list[len(signals_list) - 1]
 
-            turn_to0_list = df.index[df['turn_to0'] == 1].tolist()
-            last_turn_to0 = turn_to0_list[len(turn_to0_list) - 1]
-            if (last_signal > last_turn_to0):
-                self.signal = df.at[last_signal, 'final_signal']
+                turn_to0_list = df.index[df['turn_to0'] == 1].tolist()
+                if (len(turn_to0_list) > 0):
+                    last_turn_to0 = turn_to0_list[len(turn_to0_list) - 1]
+                else:
+                    last_turn_to0 = 0
+                if (last_signal > last_turn_to0):
+                    self.signal = df.at[last_signal, 'final_signal']
         self.signal_type = 0
         self.stop_loss = 0
         self.p3_switch = 'on'

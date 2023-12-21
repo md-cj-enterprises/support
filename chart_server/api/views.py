@@ -17,7 +17,41 @@ from .live_nifty_data import LiveNiftyData
 
 
 marks_visible = True
-token_list = ["63488", "63803", "63345"]
+#token_list = ["63488", "63803", "63345"]
+token_list = [  "63803", 
+                "63345",
+                "63426"]
+                #"63807",
+                #"63758",
+                #"63489",
+                #"63774",
+                #"63380",
+                #"63361",
+                #"63768"]
+
+
+'''"63208",
+"63437",
+"63425",
+"63541",
+"63749",
+"63726",
+"63721",
+"63508",
+"63485",
+"63509",
+"63399",
+"63483",
+"63417",
+"63344",
+"63367",
+"63506",
+"63411",'''
+
+'''"63339",
+"63368",
+"63754",
+"63451",'''
 
 if not os.path.isfile("./historical_nifty_data_live_update.xlsx"):
     print("creating file")
@@ -36,9 +70,13 @@ for i in range(len(token_list)):
     if not token_list[i] in sheets:
         wb.sheets.add(token_list[i])
 
-    live_data_thread = LiveNiftyData(i, token_list[i], historical_nifty_data)
     historical_nifty_data.get_historical_data_to_excel(token_list[i], wb.sheets(token_list[i]))
+
+for i in range(len(token_list)):
+    print("Starting live # " + str(i))
+    live_data_thread = LiveNiftyData(i, token_list[i], historical_nifty_data)
     live_data_thread.start()
+    time.sleep(2)
 
 #wb.save()
 #wb.close()

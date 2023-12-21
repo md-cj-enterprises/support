@@ -24,7 +24,7 @@ class ProcessLiveData (threading.Thread):
 
         def run(self):
             wb = xw.Book('historical_nifty_data_live_update.xlsx')
-            worksheet = wb.sheets('Sheet')
+            worksheet = wb.sheets(self.name)
 
             self.ws = worksheet
 
@@ -43,7 +43,7 @@ class ProcessLiveData (threading.Thread):
             low_price = 10000000000
 
             timestamp_five_mins = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
-            print(timestamp_five_mins)
+            #(timestamp_five_mins)
             if (timestamp_five_mins.hour < 9) or (timestamp_five_mins.hour == 9 and timestamp_five_mins.minute < 15):
                 timestamp_five_mins.replace(hour=9, minute=15, second=0, microsecond=0)
                 is_beginning = False
@@ -99,7 +99,7 @@ class ProcessLiveData (threading.Thread):
 
                         need_request = True
 
-                    print(str(pd.to_datetime(int(data_dict['exchange_timestamp'])/1000, unit='s').replace(microsecond=0, nanosecond=0)+datetime.timedelta(hours=5, minutes=30)) + " " + str(ltp) + " " + data_dict["token"])
+                    #print(str(pd.to_datetime(int(data_dict['exchange_timestamp'])/1000, unit='s').replace(microsecond=0, nanosecond=0)+datetime.timedelta(hours=5, minutes=30)) + " " + str(ltp) + " " + data_dict["token"])
                     close_price = ltp
                     low_price = min(low_price, ltp)
                     high_price = max(high_price, ltp)
@@ -112,12 +112,17 @@ class ProcessLiveData (threading.Thread):
                     #self.parent.df.loc[l, 'timestamp'] = int(data_dict['exchange_timestamp'])/1000
 
                 #print("finished data")
-                    if datetime.datetime.timestamp(timestamp_five_mins) - data_dict['exchange_timestamp']/1000.0 <= 298 and datetime.datetime.timestamp(timestamp_five_mins) - data_dict['exchange_timestamp']/1000.0 > 295 and need_request == True:
+                    #if datetime.datetime.timestamp(timestamp_five_mins) - data_dict['exchange_timestamp']/1000.0 <= 298 + (self.parent.threadID - 1)*3 and \
+                    #      datetime.datetime.timestamp(timestamp_five_mins) - data_dict['exchange_timestamp']/1000.0 > 295 + (self.parent.threadID - 1)*3  and \
+                    #print(str(self.parent.threadID) + " " + str(datetime.datetime.timestamp(timestamp_five_mins) -datetime.datetime.now(pytz.timezone("Asia/Kolkata")).timestamp()) + " " + str(297 - (self.parent.threadID)*3))
+                    if datetime.datetime.timestamp(timestamp_five_mins) -datetime.datetime.now(pytz.timezone("Asia/Kolkata")).timestamp() >  297  and \
+                          need_request == True:
 
                         if (timestamp_five_mins.hour == 9 and timestamp_five_mins.minute == 15 and datetime.datetime.timestamp(timestamp_five_mins) - data_dict['exchange_timestamp']/1000.0 <= 294):
                             continue
                         todate = datetime.datetime.now(pytz.timezone("Asia/Kolkata")) + datetime.timedelta(minutes=1)
                         data = self.historical_api.get_historical_data(timestamp_five_mins - datetime.timedelta(minutes=10), todate, self.name)
+
                         print("GOT HISORICAL CANDLES: ")
                         print(data)
                         need_request = False
@@ -137,7 +142,7 @@ class ProcessLiveData (threading.Thread):
                         self.parent.df.loc[l, 'low'] = data.at[ld, 'low']
 
                         print("FINISHED")
-                        print(self.parent.df)
+                        #print(self.parent.df)
                         print(self.parent.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
 )
                         if not is_written:
@@ -145,10 +150,10 @@ class ProcessLiveData (threading.Thread):
                             is_written = True
                         else:
                             startrow = len(self.parent.df)
-                        
+                        #self.ws.range('A1').options(expand='table', index = False, header = False).value = "HELLO"
                         self.ws.range('A' + str(startrow)).options(expand='table', index = False, header = False).value = self.parent.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
 
-                        print("WROTE TO FILE")
+                        #print("WROTE TO FILE")
 
                     if not is_beginning:
                         self.parent.df = strategy_impl.cj_strategy_base_line(self.parent.df, len(self.parent.df) - 2, self.index, ltp)
