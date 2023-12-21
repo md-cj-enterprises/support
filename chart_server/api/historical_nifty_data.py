@@ -95,7 +95,7 @@ class HistoricalNiftyData(threading.Thread):
 
     def get_historical_data(self, fromdate, todate, symboltoken):
         self.queueLock.acquire()
-        time.wait(1)
+        time.sleep(1)
         while datetime.datetime.now(pytz.timezone("Asia/Kolkata")).timestamp() - self.last_call < 0.4:
             continue
 
