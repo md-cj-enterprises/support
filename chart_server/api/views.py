@@ -99,11 +99,11 @@ wb = xw.Book('historical_nifty_data_live_update.xlsx')
 historical_nifty_data = HistoricalNiftyData()
 sheets = [s.name for s in wb.sheets]
 
-for i in range(len(token_list)):
+for i in range(len(names_list)):
     if not names_list[i] in sheets:
         wb.sheets.add(names_list[i])
 
-    historical_nifty_data.get_historical_data_to_excel(token_list[i], wb.sheets(token_list[i]))
+    historical_nifty_data.get_historical_data_to_excel(token_list[i], wb.sheets(names_list[i]))
 
 live_data_thread = LiveNiftyData(1, "Live thread", token_list, names_list, historical_nifty_data)
 live_data_thread.start()
