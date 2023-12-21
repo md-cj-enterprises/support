@@ -95,7 +95,7 @@ class HistoricalNiftyData(threading.Thread):
 
     def get_historical_data(self, fromdate, todate, symboltoken):
         self.queueLock.acquire()
-
+        time.wait(1)
         while datetime.datetime.now(pytz.timezone("Asia/Kolkata")).timestamp() - self.last_call < 0.4:
             continue
 
@@ -123,7 +123,7 @@ class HistoricalNiftyData(threading.Thread):
                 todate = data.at[0, 'date'].replace(tzinfo=pytz.timezone("Asia/Kolkata")) - datetime.timedelta(minutes=5)
             except Exception as e:
                 print("Historic Api failed: {}".format(e.message))
-            time.sleep(0.34)
+            time.sleep(0.4)
         self.last_call = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).timestamp()
         #print("Finished reading data")
         try:

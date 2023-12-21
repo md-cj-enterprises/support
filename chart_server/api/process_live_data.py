@@ -63,7 +63,7 @@ class ProcessLiveData (threading.Thread):
                 if not self.parent.getWorkQueue().empty():
                     d = self.parent.getWorkQueue().queue
                     if d[0] == b'\x00':
-                        print("Oops")
+                        #print("Oops")
                         self.parent.release_lock()
                         mssg = self.parent.getWorkQueue().get()
 
