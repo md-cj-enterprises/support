@@ -12,11 +12,12 @@ import numpy as np
 
 class LiveNiftyData (threading.Thread):
 
-    def __init__(self, threadID, name, tokens, historical_api):
+    def __init__(self, threadID, name, tokens, names, historical_api):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.name = name
         self.tokens = tokens
+        self.names = names
         self.historical_api = historical_api
         #self.max_mark_id = 0
 
@@ -81,7 +82,7 @@ class LiveNiftyData (threading.Thread):
 
         # Create new thread
         for t in range(len(self.tokens)):
-            thread = ProcessLiveData(self.threadID, self.tokens[t], self, self.historical_api, self.df_list[t])
+            thread = ProcessLiveData(self.threadID, self.tokens[t], self.names[t], self, self.historical_api, self.df_list[t])
             thread.start()
         self.login()
 

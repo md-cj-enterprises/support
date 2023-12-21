@@ -18,7 +18,9 @@ from .live_nifty_data import LiveNiftyData
 
 marks_visible = True
 #token_list = ["63488", "63803", "63345"]
-token_list = [  "63803", 
+token_list = [  "63197",
+                "61627",
+                "63803",
                 "63345",
                 "63426",
                 "63807",
@@ -27,31 +29,62 @@ token_list = [  "63803",
                 "63774",
                 "63380",
                 "63361",
+                "63339",
+                "63368",
+                "63754",
+                "63208",
+                "63437",
+                "63425",
+                "63541",
+                "63749",
+                "63726",
+                "63721",
+                "63508",
+                "63485",
+                "63509",
+                "63399",
+                "63483",
+                "63417",
+                "63344",
+                "63367",
+                "63506",
+                "63411",
+                "63451",
                 "63768"]
 
-
-'''"63208",
-"63437",
-"63425",
-"63541",
-"63749",
-"63726",
-"63721",
-"63508",
-"63485",
-"63509",
-"63399",
-"63483",
-"63417",
-"63344",
-"63367",
-"63506",
-"63411",'''
-
-'''"63339",
-"63368",
-"63754",
-"63451",'''
+names_list = [  "Nifty",
+                "BankNifty",
+                "ULTRACEMCO28DEC23FUT",
+                "BAJAJ-AUTO28DEC23FUT",
+                "HINDALCO28DEC23FUT",
+                "WIPRO28DEC23FUT",
+                "SBIN28DEC23FUT",
+                "ITC28DEC23FUT",
+                "TCS28DEC23FUT",
+                "DIVISLAB28DEC23FUT",
+                "BRITANNIA28DEC23FUT",
+                "ASIANPAINT28DEC23FUT",
+                "COALINDIA28DEC23FUT",
+                "RELIANCE28DEC23FUT",
+                "ADANIENT28DEC23FUT",
+                "HINDUNILVR28DEC23FUT",
+                "HEROMOTOCO28DEC23FUT",
+                "M&M28DEC23FUT",
+                "POWERGRID28DEC23FUT",
+                "ONGC28DEC23FUT",
+                "NESTLEIND28DEC23FUT",
+                "KOTAKBANK28DEC23FUT",
+                "INFY28DEC23FUT",
+                "L&TFH28DEC23FUT",
+                "GRASIM28DEC23FUT",
+                "INDUSINDBK28DEC23FUT",
+                "HDFCBANK28DEC23FUT",
+                "AXISBANK28DEC23FUT",
+                "CIPLA28DEC23FUT",
+                "JSWSTEEL28DEC23FUT",
+                "HCLTECH28DEC23FUT",
+                "ICICIBANK28DEC23FUT",
+                "TATACONSUM28DEC23FUT"]
 
 if not os.path.isfile("./historical_nifty_data_live_update.xlsx"):
     print("creating file")
@@ -67,12 +100,12 @@ historical_nifty_data = HistoricalNiftyData()
 sheets = [s.name for s in wb.sheets]
 
 for i in range(len(token_list)):
-    if not token_list[i] in sheets:
-        wb.sheets.add(token_list[i])
+    if not names_list[i] in sheets:
+        wb.sheets.add(names_list[i])
 
     historical_nifty_data.get_historical_data_to_excel(token_list[i], wb.sheets(token_list[i]))
 
-live_data_thread = LiveNiftyData(1, "Live thread", token_list, historical_nifty_data)
+live_data_thread = LiveNiftyData(1, "Live thread", token_list, names_list, historical_nifty_data)
 live_data_thread.start()
 
 #wb.save()

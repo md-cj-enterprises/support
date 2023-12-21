@@ -7,10 +7,11 @@ import xlwings as xw
 from .strategy_implementation import StrategyImplementation
 
 class ProcessLiveData (threading.Thread):
-        def __init__(self, threadID, name, parent, historical_api, df):
+        def __init__(self, threadID, name, symb_name, parent, historical_api, df):
             threading.Thread.__init__(self)
             self.threadID = threadID
             self.name = name
+            self.symb_name = symb_name,
             self.exitFlag = False
             self.parent = parent
             self.historical_api = historical_api
@@ -25,7 +26,7 @@ class ProcessLiveData (threading.Thread):
 
         def run(self):
             wb = xw.Book('historical_nifty_data_live_update.xlsx')
-            worksheet = wb.sheets(self.name)
+            worksheet = wb.sheets(self.symb_name)
 
             self.ws = worksheet
 
