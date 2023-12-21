@@ -12,81 +12,32 @@ import numpy as np
 
 class LiveNiftyData (threading.Thread):
 
-    def __init__(self, threadID, name, historical_api):
+    def __init__(self, threadID, name, tokens, historical_api):
         threading.Thread.__init__(self)
         self.threadID = threadID
         self.name = name
+        self.tokens = tokens
         self.historical_api = historical_api
-        self.max_mark_id = 0
+        #self.max_mark_id = 0
 
     def run(self):
         wb = xw.Book('historical_nifty_data_live_update.xlsx')
-        worksheet = wb.sheets(self.name)
 
-        self.ws = worksheet
-        self.open_file_with_data("./historical_nifty_data.xlsx")
-
-
-        self.read_data_from_file(self.file_name)
-        for i in range(len(self.df)):
-            self.add_marks_ids_to_df(i)
-        
+        self.df_list = []
+        for k in range (len(self.tokens)):
+            worksheet = wb.sheets(self.tokens[k])
+            self.df_list.append(self.read_data_from_file(worksheet))
+        print("DF LIST")
+        print(self.df_list)
         self.get_live_data()
 
-    def read_data_from_file(self, file_name):
-        self.file_name = file_name
-        self.df = self.ws['A1'].expand().options(pd.DataFrame, index = False, header = True).value
-        self.df['timestamp'] = self.df["date"]
+    def read_data_from_file(self, ws):
+        df_i = ws['A1'].expand().options(pd.DataFrame, index = False, header = True).value
+        df_i['timestamp'] = df_i["date"]
         local = pytz.timezone("Asia/Kolkata")
-        #self.df.timestamp =  self.df.timestamp.apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
-        self.df.timestamp = self.df.timestamp.apply(lambda x: local.localize(x, is_dst=None))
-        self.df.timestamp = self.df.timestamp.apply(lambda x:  int(round(x.timestamp())))
-        self.df['marks_ids'] = -1
-        self.df['marks_ids'] = self.df['marks_ids'].astype('object')
-
-
-
-    def add_marks_ids_to_df(self, i):
-        marks_list = []
-        temp_mark = self.max_mark_id
-        if self.df.at[i, 'final_signal'] != 0 and not pd.isnull(self.df.at[i, 'final_signal']):
-            marks_list.append(temp_mark)
-            temp_mark+=1
-            if self.df.at[i, 'final_signal'] == 3 or self.df.at[i, 'final_signal'] == -3:
-                marks_list.append(temp_mark)
-                temp_mark+=1
-        if self.df.at[i, 'exit_point'] != 0 and not pd.isnull(self.df.at[i, 'exit_point']):
-            marks_list.append(temp_mark)
-            temp_mark+=1
-        if self.df.at[i, 'entry_position'] != 0 and not pd.isnull(self.df.at[i, 'entry_position']):
-            marks_list.append(temp_mark)
-            temp_mark+=1
-        if self.df.at[i, 'stop_loss'] != 0 and not pd.isnull(self.df.at[i, 'stop_loss']):
-            marks_list.append(temp_mark)
-            temp_mark+=1
-        if self.df.at[i, 'entry_point']  != 0 and not pd.isnull(self.df.at[i, 'entry_point']):
-            marks_list.append(temp_mark)
-            temp_mark+=1
-        if self.df.at[i, 'turn_to0'] != 0 and not pd.isnull(self.df.at[i, 'turn_to0']):
-            marks_list.append(temp_mark)
-            temp_mark+=1
-
-        if len(marks_list) == 0:
-            self.df.at[i, 'marks_ids'] = -1
-            return
-        elif self.df.at[i, 'marks_ids'] == -1 or pd.isnull(self.df.at[i, 'marks_ids']):
-            self.df.at[i, 'marks_ids'] = marks_list
-            self.max_mark_id = temp_mark
-            return
-        elif len(self.df.at[i, 'marks_ids']) != len(marks_list):
-            self.df.at[i, 'marks_ids'] = marks_list
-            self.max_mark_id = temp_mark
-            return
-
-    def open_file_with_data(self, file_name):
-        self.file_name = file_name
-        self.read_data_from_file(file_name)
-
+        df_i.timestamp = df_i.timestamp.apply(lambda x: local.localize(x, is_dst=None))
+        df_i.timestamp = df_i.timestamp.apply(lambda x:  int(round(x.timestamp())))
+        return df_i
 
     def parse(self, msg):   
         self.queueLock.acquire()
@@ -94,14 +45,14 @@ class LiveNiftyData (threading.Thread):
         self.queueLock.release()
 
     def on_data(self, wsapp, message):  
-        #print("Ticks: {}".format(message))
+        #print("Ticks")
         self.parse(message)
 
     def on_open(self, wsapp):
         print("on open")
         correlation_id = "test"
         mode = 1
-        token_list = [{"exchangeType": 2, "tokens": [self.name]}]
+        token_list = [{"exchangeType": 2, "tokens": self.tokens}]
         self.sws.subscribe(correlation_id, mode, token_list)
 
 
@@ -127,11 +78,11 @@ class LiveNiftyData (threading.Thread):
 
         self.queueLock = threading.Lock()
         self.workQueue = queue.Queue(10000)
-        threadID = self.threadID
 
         # Create new thread
-        thread = ProcessLiveData(self.threadID, self.name, self, self.historical_api)
-        thread.start()
+        for t in range(len(self.tokens)):
+            thread = ProcessLiveData(self.threadID, self.tokens[t], self, self.historical_api, self.df_list[t])
+            thread.start()
         self.login()
 
     def login(self):

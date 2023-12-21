@@ -20,14 +20,14 @@ marks_visible = True
 #token_list = ["63488", "63803", "63345"]
 token_list = [  "63803", 
                 "63345",
-                "63426"]
-                #"63807",
-                #"63758",
-                #"63489",
-                #"63774",
-                #"63380",
-                #"63361",
-                #"63768"]
+                "63426",
+                "63807",
+                "63758",
+                "63489",
+                "63774",
+                "63380",
+                "63361",
+                "63768"]
 
 
 '''"63208",
@@ -72,11 +72,8 @@ for i in range(len(token_list)):
 
     historical_nifty_data.get_historical_data_to_excel(token_list[i], wb.sheets(token_list[i]))
 
-for i in range(len(token_list)):
-    print("Starting live # " + str(i))
-    live_data_thread = LiveNiftyData(i, token_list[i], historical_nifty_data)
-    live_data_thread.start()
-    time.sleep(2)
+live_data_thread = LiveNiftyData(1, "Live thread", token_list, historical_nifty_data)
+live_data_thread.start()
 
 #wb.save()
 #wb.close()
