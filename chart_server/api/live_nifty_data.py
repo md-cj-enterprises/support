@@ -25,8 +25,8 @@ class LiveNiftyData (threading.Thread):
         wb = xw.Book('historical_nifty_data_live_update.xlsx')
 
         self.df_list = []
-        for k in range (len(self.tokens)):
-            worksheet = wb.sheets(self.tokens[k])
+        for k in range (len(self.names)):
+            worksheet = wb.sheets(self.names[k])
             self.df_list.append(self.read_data_from_file(worksheet))
         print("DF LIST")
         print(self.df_list)
