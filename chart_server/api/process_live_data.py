@@ -11,7 +11,7 @@ class ProcessLiveData (threading.Thread):
             threading.Thread.__init__(self)
             self.threadID = threadID
             self.name = name
-            self.symb_name = symb_name,
+            self.symb_name = symb_name
             self.exitFlag = False
             self.parent = parent
             self.historical_api = historical_api
@@ -27,10 +27,10 @@ class ProcessLiveData (threading.Thread):
         def run(self):
             wb = xw.Book('historical_nifty_data_live_update.xlsx')
             worksheet = wb.sheets(self.symb_name)
-
+        
             self.ws = worksheet
-
-            print("Starting " + self.name)
+            #self.ws.range('A1').value = "HELLO"
+            print("Starting " + self.name + " " )
             self.process_data(self.name)
             print("Exiting " + self.name)
             
@@ -38,7 +38,7 @@ class ProcessLiveData (threading.Thread):
         def process_data(self, threadName):
 
             is_beginning = True
-            need_request = True
+            need_request = False
             open_price = None
             close_price = None
             is_written = False
@@ -48,7 +48,7 @@ class ProcessLiveData (threading.Thread):
             timestamp_five_mins = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
             #(timestamp_five_mins)
             if (timestamp_five_mins.hour < 9) or (timestamp_five_mins.hour == 9 and timestamp_five_mins.minute < 15):
-                timestamp_five_mins.replace(hour=9, minute=15, second=0, microsecond=0)
+                timestamp_five_mins = timestamp_five_mins.replace(hour=9, minute=15, second=0, microsecond=0)
                 is_beginning = False
             else: 
                 if timestamp_five_mins.minute >= 55:
@@ -118,12 +118,11 @@ class ProcessLiveData (threading.Thread):
 
                         need_request = True
 
-                    print(str(pd.to_datetime(int(data_dict['exchange_timestamp'])/1000, unit='s').replace(microsecond=0, nanosecond=0)+datetime.timedelta(hours=5, minutes=30)) + " " + str(ltp) + " " + data_dict["token"] + " " + self.name)
+                    print(str(pd.to_datetime(int(data_dict['exchange_timestamp'])/1000, unit='s').replace(microsecond=0, nanosecond=0)+datetime.timedelta(hours=5, minutes=30)) + " " + str(ltp) + " " + data_dict["token"])
                     close_price = ltp
                     low_price = min(low_price, ltp)
                     high_price = max(high_price, ltp)
-                    if datetime.datetime.timestamp(timestamp_five_mins) -datetime.datetime.now(pytz.timezone("Asia/Kolkata")).timestamp() >  297  and \
-                          need_request == True:
+                    if  need_request == True:
 
                         if (timestamp_five_mins.hour == 9 and timestamp_five_mins.minute == 15 and datetime.datetime.timestamp(timestamp_five_mins) - data_dict['exchange_timestamp']/1000.0 <= 294):
                             continue
@@ -147,7 +146,6 @@ class ProcessLiveData (threading.Thread):
                         self.df.loc[l, 'high'] = data.at[ld, 'high']
                         self.df.loc[l, 'low'] = data.at[ld, 'low']
 
-                        print("FINISHED")
                         print(self.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
 )
                         if not is_written:
@@ -156,7 +154,9 @@ class ProcessLiveData (threading.Thread):
                         else:
                             startrow = len(self.df)
                         #self.ws.range('A1').options(expand='table', index = False, header = False).value = "HELLO"
-                        self.ws.range('A' + str(startrow)).options(expand='table', index = False, header = False).value = self.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
+                        self.ws.range('A' + str(startrow - 1)).options(expand='table', index = False, header = False).value = self.df[['date', 'open', 'high', 'low', 'close', 'h_open', 'h_high', 'h_low', 'h_close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l - 1]]
+
+                        self.ws.range('A' + str(startrow)).options(expand='table', index = False, header = False).value = self.df[['date', 'open', 'high', 'low', 'close', 'h_open', 'h_high', 'h_low', 'h_close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
 
                         #print("WROTE TO FILE")
 

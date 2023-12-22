@@ -104,7 +104,7 @@ for i in range(len(names_list)):
         wb.sheets.add(names_list[i])
 
     historical_nifty_data.get_historical_data_to_excel(token_list[i], wb.sheets(names_list[i]))
-
+        
 live_data_thread = LiveNiftyData(1, "Live thread", token_list, names_list, historical_nifty_data)
 live_data_thread.start()
 

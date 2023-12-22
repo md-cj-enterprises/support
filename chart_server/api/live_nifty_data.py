@@ -28,8 +28,6 @@ class LiveNiftyData (threading.Thread):
         for k in range (len(self.names)):
             worksheet = wb.sheets(self.names[k])
             self.df_list.append(self.read_data_from_file(worksheet))
-        print("DF LIST")
-        print(self.df_list)
         self.get_live_data()
 
     def read_data_from_file(self, ws):
@@ -76,6 +74,7 @@ class LiveNiftyData (threading.Thread):
     
     def get_live_data(self):
         print("Starting reading live data...")
+        print(self.names)
 
         self.queueLock = threading.Lock()
         self.workQueue = queue.Queue(10000)

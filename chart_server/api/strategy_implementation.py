@@ -12,7 +12,6 @@ class StrategyImplementation:
         self.profit = 0
         self.trades = 0
         self.signal = 0
-        print(not is_historical)
         if not is_historical:
             signals_list = df.index[(df['final_signal'] == 1) | (df['final_signal'] == -1)].tolist()
             if len(signals_list) != 0:

@@ -72,7 +72,7 @@ class HistoricalNiftyData(threading.Thread):
             #startrow = self.len_df
         
 
-        ws["A"+str(startrow)].options(pd.DataFrame, header=True, index=False, expand='table').value = data[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']]
+        ws["A"+str(startrow)].options(pd.DataFrame, header=True, index=False, expand='table').value = data[['date', 'open', 'high', 'low', 'close', 'h_open', 'h_high', 'h_low', 'h_close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']]
 
 
     def login(self):
