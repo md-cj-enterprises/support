@@ -60,26 +60,20 @@ class ProcessLiveData (threading.Thread):
 
             while not self.exitFlag:
                 self.parent.acquire_lock()
-                #print(self.name + " has lock")
                 if not self.parent.getWorkQueue().empty():
                     d = self.parent.getWorkQueue().queue
                     if d[0] == b'\x00':
-                        #print("Oops")
                         self.parent.release_lock()
                         mssg = self.parent.getWorkQueue().get()
-
-                        #print(self.name + " release lock")
 
                         continue
                     #print(d)
                     if d[0]['token'] != self.name:
                         self.parent.release_lock()
-                        #print(self.name + " release lock")
 
                         continue
                     messg = self.parent.getWorkQueue().get()
                     self.parent.release_lock()
-                    #print(self.name + " release lock")
 
                     if (datetime.datetime.now(pytz.timezone("Asia/Kolkata")).hour < 9) or (datetime.datetime.now(pytz.timezone("Asia/Kolkata")).hour == 9 and datetime.datetime.now(pytz.timezone("Asia/Kolkata")).minute < 15):
                         continue
@@ -112,12 +106,10 @@ class ProcessLiveData (threading.Thread):
                         self.df.loc[i, 'close'] = close_price
                         self.df.loc[i, 'high'] = high_price
                         self.df.loc[i, 'low'] = low_price
-
                         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                         print(self.df[['date', 'h_open', 'h_high', 'h_low', 'final_signal']])
 
                         need_request = True
-
                     print(str(pd.to_datetime(int(data_dict['exchange_timestamp'])/1000, unit='s').replace(microsecond=0, nanosecond=0)+datetime.timedelta(hours=5, minutes=30)) + " " + str(ltp) + " " + data_dict["token"])
                     close_price = ltp
                     low_price = min(low_price, ltp)
@@ -146,7 +138,10 @@ class ProcessLiveData (threading.Thread):
                         self.df.loc[l, 'high'] = data.at[ld, 'high']
                         self.df.loc[l, 'low'] = data.at[ld, 'low']
 
-                        print(self.df[['date', 'open', 'high', 'low', 'close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
+                        print(self.df[['date', 'open', 'high', 'low', 'close', 
+                                    'profit', 'final_signal', 'exit_point', 
+                                    'signal', 'entry_point', 'stop_loss', 
+                                    'signal_type', 'turn_to0']].iloc[[l]]
 )
                         if not is_written:
                             startrow = len(self.df)
@@ -154,14 +149,24 @@ class ProcessLiveData (threading.Thread):
                         else:
                             startrow = len(self.df)
                         #self.ws.range('A1').options(expand='table', index = False, header = False).value = "HELLO"
-                        self.ws.range('A' + str(startrow - 1)).options(expand='table', index = False, header = False).value = self.df[['date', 'open', 'high', 'low', 'close', 'h_open', 'h_high', 'h_low', 'h_close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l - 1]]
+                        self.ws.range('A' + str(startrow - 1)).options(expand='table', index = False, header = False).value = self.df.iloc[[l - 1]]
+                        '''[['date', 'open', 'high', 'low', 'close', 
+                                                                                                                                       'h_open', 'h_high', 'h_low', 'h_close', 
+                                                                                                                                       'profit', 'final_signal', 'exit_point', 
+                                                                                                                                       'signal', 'entry_point', 'stop_loss', 
+                                                                                                                                       'signal_type', 'turn_to0']].iloc[[l - 1]]'''
 
-                        self.ws.range('A' + str(startrow)).options(expand='table', index = False, header = False).value = self.df[['date', 'open', 'high', 'low', 'close', 'h_open', 'h_high', 'h_low', 'h_close', 'profit', 'final_signal', 'exit_point', 'signal', 'entry_point', 'entry_position', 'stop_loss', 'signal_type', 'entry_point_temp', 'stop_loss_temp', 'turn_to0', 'trade_type', 'exit_type', 'exit_position']].iloc[[l]]
+                        self.ws.range('A' + str(startrow)).options(expand='table', index = False, header = False).value = self.df.iloc[[l]]
+                        '''[['date', 'open', 'high', 'low', 'close', 
+                                                                                                                                   'h_open', 'h_high', 'h_low', 'h_close', 
+                                                                                                                                   'profit', 'final_signal', 'exit_point', 
+                                                                                                                                   'signal', 'entry_point', 'stop_loss', 
+                                                                                                                                   'signal_type', 'turn_to0']].iloc[[l]]'''
 
                         #print("WROTE TO FILE")
 
                     if not is_beginning:
-                        self.df = strategy_impl.cj_strategy_base_line(self.df, len(self.df) - 2, self.index, ltp)
+                        self.df = strategy_impl.cj_strategy_base_line(self.df, len(self.df) - 2, self.index, ltp, pd.to_datetime(int(data_dict['exchange_timestamp'])/1000, unit='s').replace(microsecond=0, nanosecond=0) + datetime.timedelta(hours=5, minutes=30))
 
                 else:
                     self.parent.release_lock()
