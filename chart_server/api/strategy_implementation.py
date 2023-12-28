@@ -11,6 +11,10 @@ class StrategyImplementation:
         self.profit = 0
         self.trades = 0
         self.signal = 0
+        self.signal_type = 0
+        self.stop_loss = 0
+        self.p3_switch = 'on'
+
 
         signals_list = df.index[(df['final_signal'] == 1) | (df['final_signal'] == -1 ) | (df['final_signal'] == 2) | (df['final_signal'] == -2)].tolist()
         if len(signals_list) != 0:
@@ -25,11 +29,9 @@ class StrategyImplementation:
                 self.signal = df.at[last_signal, 'final_signal']
                 self.signal_type = df.at[last_signal, 'signal_type']
                 self.p3_switch = df.at[last_signal, 'p3_switch']
-
-
-        self.signal_type = 0
-        self.stop_loss = 0
-        self.p3_switch = 'on'
+                self.entry_point = df.at[last_signal, 'entry_point']
+                self.exit_point = df.at[last_signal, 'exit_point']
+                self.stop_loss = df.at[last_signal, 'stop_loss']
 
     def get_df(self):
         return self.df
@@ -185,6 +187,8 @@ class StrategyImplementation:
         df.at[i, 'entry_point'] = self.entry_point
         df.at[i, 'stop_loss'] = self.stop_loss
         df.at[i, 'signal'] = self.signal
+        df.at[i, 'p3_switch'] = self.p3_switch
+
         return df
     
     def cj_strategy_base_line(self, df, i, index, ltp, ltp_time):
@@ -196,7 +200,7 @@ class StrategyImplementation:
             
         if (self.signal != 2) and (self.signal != -2):
             if self.p3_switch == 'on':
-                if (ltp != False) and (self.signal_3(df, index, i) == 1) and (ltp >= 1.004*df.at[i,'top_leading_line' + str(index)]):
+                if (ltp != False) and (self.signal_3(df, index, i) == 1) and (ltp >= 1.004*df.at[i,'top_leading_line' + str(index)]) and (ltp < 1.001*df.at[i,'top_leading_line' + str(index)]):
                     self.signal = 2
                     df.at[i, 'final_signal'] = 2
                     self.entry_point = 1.004*df.at[i,'top_leading_line' + str(index)]
@@ -204,7 +208,7 @@ class StrategyImplementation:
                     df.at[i, 'ltp'] = ltp
                     df.at[i, 'trade_time'] = ltp_time
                     df = self.save_values_to_df(df, i)
-                elif (ltp != False) and (self.signal_3(df, index, i) == -1) and (ltp <= 0.996*df.at[i,'bottom_leading_line' + str(index)]):
+                elif (ltp != False) and (self.signal_3(df, index, i) == -1) and (ltp <= 0.996*df.at[i,'bottom_leading_line' + str(index)]) and (ltp > 0.99*df.at[i,'bottom_leading_line' + str(index)]):
                     self.signal = -2
                     df.at[i, 'final_signal'] = -2
                     df.at[i, 'ltp'] = ltp
@@ -267,7 +271,7 @@ class StrategyImplementation:
 
                     
             elif self.signal == 1:
-                if ltp != False and ltp >= self.entry_point:
+                if ltp != False and ltp >= self.entry_point and ltp < 1.001*self.entry_point:
                     self.signal = 2
                     df.at[i, 'final_signal'] = 2
                     df.at[i, 'ltp'] = ltp
@@ -302,7 +306,7 @@ class StrategyImplementation:
                     
                 
             elif self.signal == -1:
-                if ltp != False and ltp <= self.entry_point:
+                if ltp != False and ltp <= self.entry_point and ltp > 0.99*self.entry_point:
                     self.signal = -2
                     df.at[i, 'final_signal'] = -2
                     df.at[i, 'ltp'] = ltp

@@ -51,15 +51,15 @@ class HistoricalNiftyData(threading.Thread):
             data = self.concat_excel_and_api(df, data)
             #data = pd.concat([df, data], ignore_index=True)
         else:
-            data['profit'] = 0
-            data['final_signal'] = 0
-            data['exit_point'] = 0
-            data['signal'] = 0
-            data['entry_point'] = 0
-            data['entry_position'] = 0
-            data['stop_loss'] = 0
-            data['signal_type'] = 0
-            data['turn_to0'] = 0
+            data['profit'] = ""
+            data['final_signal'] = ""
+            data['exit_point'] = ""
+            data['signal'] = ""
+            data['entry_point'] = ""
+            data['entry_position'] = ""
+            data['stop_loss'] = ""
+            data['signal_type'] = ""
+            data['turn_to0'] = ""
             data['trade_time'] = ""
             data['ltp'] = ""
             data['p3_switch'] = ""
@@ -71,6 +71,10 @@ class HistoricalNiftyData(threading.Thread):
         for i in range (len_df + 3, len(data)):
             data = strategy_impl.cj_strategy_base_line(data, i, self.index, False, False)
         #data = data.replace(0, "")
+        first_cols = ['date','open','high', 'low', 'close', 'h_open', 'h_high', 'h_low', 'h_close']
+        last_cols = [col for col in data.columns if col not in first_cols]
+
+        data = data[first_cols+last_cols]
 
         print(data)
         #if (self.len_df == 0):
@@ -107,7 +111,7 @@ class HistoricalNiftyData(threading.Thread):
 
     def get_historical_data(self, fromdate, todate, symboltoken):
         self.queueLock.acquire()
-        time.sleep(1)
+        time.sleep(0.8)
         while datetime.datetime.now(pytz.timezone("Asia/Kolkata")).timestamp() - self.last_call < 0.4:
             continue
 
