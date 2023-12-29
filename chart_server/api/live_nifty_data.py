@@ -108,10 +108,5 @@ class LiveNiftyData (threading.Thread):
         while True:
             self.sws.connect()
 
-
-            
     def get_data(self):
         return self.df
-
-
-
