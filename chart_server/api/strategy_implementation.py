@@ -227,244 +227,244 @@ class StrategyImplementation:
             
                     
                     
-            if self.signal == 0:
-                
-                if self.signal_1(df, index, i) == 1:
-                    self.entry_point = 1.0005 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high'])
-                    #stop_loss = 0.996 * entry_point
-                    df.at[i, 'final_signal'] = 1
-                    #df.at[i, 'stop_loss'] = stop_loss
-                    self.signal = 1
-                    self.signal_type = 'p1'
-                    df = self.save_values_to_df(df, i)
-
-                    
-                elif self.signal_1(df, index, i) == -1:
-                    self.entry_point = 0.9995 * min(df.at[i, 'h_low'], df.at[i-1, 'h_low'], df.at[i-2, 'h_low'], df.at[i-3, 'h_low'])
-                    #stop_loss = 1.004 * entry_point
-                    df.at[i, 'final_signal'] = -1
-                    #df.at[i, 'stop_loss'] = stop_loss
-                    self.signal = -1
-                    self.signal_type = 'p1'
-                    df = self.save_values_to_df(df, i)
-
-                
-                elif self.signal_2(df, index, i) == 1:
-                    self.entry_point = 1.0005 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high'])
-                    #stop_loss = 0.996 * entry_point
-
-                    df.at[i, 'final_signal'] = 1
-                    #df.at[i, 'stop_loss'] = stop_loss
-                    self.signal = 1
-                    self.signal_type = 'p2'
-                    df = self.save_values_to_df(df, i)
-
-                    
-                elif self.signal_2(df, index, i) == -1:
-                    self.entry_point = 0.9995 * min(df.at[i, 'h_low'], df.at[i-1, 'h_low'], df.at[i-2, 'h_low'], df.at[i-3, 'h_low'])
-                    #stop_loss = 1.004 * entry_point
-                    df.at[i, 'final_signal'] = -1
-                    #df.at[i, 'stop_loss'] = stop_loss
-                    self.signal = -1
-                    self.signal_type = 'p2'
-                    df = self.save_values_to_df(df, i)
-
-                    
-            elif self.signal == 1:
-                if ltp != False and ltp >= self.entry_point and ltp < 1.001*self.entry_point:
-                    self.signal = 2
-                    df.at[i, 'final_signal'] = 2
-                    df.at[i, 'ltp'] = ltp
-                    df.at[i, 'trade_time'] = ltp_time
-
-                    self.signal_type = 0
-                    df = self.save_values_to_df(df, i)
-
-                elif df.at[i, 'h_close'] < df.at[i,'top_leading_line' + str(index)]:
-                    self.signal = 0
-                    df.at[i, 'final_signal'] = 0
-                    df.at[i, 'turn_to0'] = 1
-                    self.signal_type = 0
-                    df = self.save_values_to_df(df, i)
-                elif (self.signal_type == 'p1') and (self.signal_2(df, index, i) == 1):
-                    self.entry_point = 1.0005 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high'])
-                    #stop_loss = 0.996 * entry_point
-                    df.at[i, 'final_signal'] = 1
-                    #df.at[i, 'stop_loss'] = stop_loss
-                    self.signal = 1
-                    self.signal_type = 'p2'
-                    df = self.save_values_to_df(df, i)
-                elif (self.signal_type == 'p2') and (self.signal_1(df, index, i) == 1):
-                    self.entry_point = 1.0005 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high'])
-                    #stop_loss = 0.996 * entry_point
-
-                    df.at[i, 'final_signal'] = 1
-                    #df.at[i, 'stop_loss'] = stop_loss
-                    self.signal = 1
-                    self.signal_type = 'p1'
-                    df = self.save_values_to_df(df, i)
-                    
-                
-            elif self.signal == -1:
-                if ltp != False and ltp <= self.entry_point and ltp > 0.99*self.entry_point:
-                    self.signal = -2
-                    df.at[i, 'final_signal'] = -2
-                    df.at[i, 'ltp'] = ltp
-                    df.at[i, 'trade_time'] = ltp_time
-
-                    self.signal_type = 0
-                    df = self.save_values_to_df(df, i)
-
-                elif df.at[i, 'h_close'] > df.at[i,'bottom_leading_line' + str(index)]:
-                    self.signal = 0
-                    df.at[i, 'final_signal'] = 0
-                    df.at[i, 'turn_to0'] = 1
-                    self.signal_type = 0
-                    df = self.save_values_to_df(df, i)
-                elif (self.signal_type == 'p1') and (self.signal_2(df, index, i) == -1):
-                    self.entry_point = 0.9995 * min(df.at[i, 'h_low'], df.at[i-1, 'h_low'], df.at[i-2, 'h_low'], df.at[i-3, 'h_low'])
-                    #stop_loss = 1.004 * entry_point
-                    df.at[i, 'final_signal'] = -1
-                    #df.at[i, 'stop_loss'] = stop_loss
-                    self.signal = -1
-                    self.signal_type = 'p2'
-                    df = self.save_values_to_df(df, i)
-                elif (self.signal_type == 'p2') and (self.signal_1(df, index, i) == -1):
-                    self.entry_point = 0.9995 * min(df.at[i, 'h_low'], df.at[i-1, 'h_low'], df.at[i-2, 'h_low'], df.at[i-3, 'h_low'])
-                    #stop_loss = 1.004 * entry_point
-                    df.at[i, 'final_signal'] = -1
-                    #df.at[i, 'stop_loss'] = stop_loss
-                    self.signal = -1
-                    self.signal_type = 'p1'
-                    df = self.save_values_to_df(df, i)
+        if self.signal == 0:
             
-            #LTP!!!
-            elif self.signal == 2 and ltp != False:
-                
-                if (self.stop_loss != 0) and (ltp <= self.stop_loss):
-                    df.at[i, 'profit'] = self.stop_loss - self.entry_point
-                    self.profit += df.at[i, 'profit']
-                    self.trades += 1
-                    self.entry_point = 0
-                    self.exit_point = 0
-                    self.stop_loss = 0
-                    self.signal = 0
-                    df.at[i, 'final_signal'] = 3
-                    df = self.save_values_to_df(df, i)
-                    
-                elif (self.exit_point != 0) and (ltp <= self.exit_point):
-                    df.at[i, 'profit'] = self.exit_point - self.entry_point
-                    self.profit += df.at[i, 'profit']
-                    self.trades += 1
-                    self.entry_point = 0
-                    self.stop_loss = 0
-                    self.signal = 0
-                    self.exit_point = 0
-                    df.at[i, 'final_signal'] = 3
-                    df = self.save_values_to_df(df, i)
-                                            
-                elif ((df.at[i, 'h_open'] > df.at[i ,'base_line' + str(index)]) and (ltp <= 0.9929*df.at[i, 'h_open']) and
-                    (ltp <= 0.9997*df.at[i ,'base_line' + str(index)])):
-                    df.at[i, 'profit'] = 0.9993*df.at[i ,'base_line' + str(index)] - self.entry_point
-                    self.profit += df.at[i, 'profit']
-                    self.trades += 1
-                    self.entry_point = 0
-                    self.exit_point = 0
-                    self.stop_loss = 0
-                    self.signal = 0
-                    df.at[i, 'final_signal'] = 3
-                    df = self.save_values_to_df(df, i)
-                    
-                elif (df.at[i, 'h_open'] > df.at[i ,'top_leading_line' + str(index)] > df.at[i, 'h_close']) and (ltp <= 0.9995*df.at[i ,'bottom_leading_line' + str(index)]):
-                    df.at[i, 'profit'] = 0.9995*df.at[i ,'bottom_leading_line' + str(index)] - self.entry_point
-                    self.profit += df.at[i, 'profit']
-                    self.trades += 1
-                    self.entry_point = 0
-                    self.exit_point = 0
-                    self.stop_loss = 0
-                    self.signal = 0
-                    df.at[i, 'final_signal'] = 3
-                    df = self.save_values_to_df(df, i)
-                    
-                if df.at[i, 'final_signal'] != 3:
-                    
-                    if self.exit_point == 0 and (df.at[i-1, 'h_close'] < df.at[i-1, 'base_line' + str(index)] < df.at[i-1, 'h_open']) and (df.at[i, 'h_close'] < df.at[i ,'base_line' + str(index)]):
-                        self.exit_point = 0.9997 * min(df.at[i, 'h_low'], df.at[i-1, 'h_low'])
-                        df.at[i, 'exit_point'] = self.exit_point
-                    elif (self.exit_point != 0) and (df.at[i, 'h_close'] >= df.at[i ,'base_line' + str(index)]):
-                        self.exit_point = 0
-                        
-                    if self.stop_loss == 0:
-                        if df.at[i, 'h_close'] < df.at[i,'top_leading_line' + str(index)]:
-                            self.stop_loss = df.at[i, 'h_close']
-                            df.at[i, 'stop_loss'] = self.stop_loss
-                    elif self.stop_loss != 0:
-                        if df.at[i, 'h_close'] > df.at[i, 'top_leading_line' + str(index)]:
-                            self.stop_loss = 0
+            if self.signal_1(df, index, i) == 1:
+                self.entry_point = 1.0005 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high'])
+                #stop_loss = 0.996 * entry_point
+                df.at[i, 'final_signal'] = 1
+                #df.at[i, 'stop_loss'] = stop_loss
+                self.signal = 1
+                self.signal_type = 'p1'
+                df = self.save_values_to_df(df, i)
 
-            #LTP!!!
-            elif self.signal == -2 and ltp != False:
                 
-                if (self.stop_loss != 0) and (ltp >= self.stop_loss):
-                    df.at[i, 'profit'] = self.entry_point - self.stop_loss 
-                    self.profit += df.at[i, 'profit']
-                    self.trades += 1
-                    self.entry_point = 0
+            elif self.signal_1(df, index, i) == -1:
+                self.entry_point = 0.9995 * min(df.at[i, 'h_low'], df.at[i-1, 'h_low'], df.at[i-2, 'h_low'], df.at[i-3, 'h_low'])
+                #stop_loss = 1.004 * entry_point
+                df.at[i, 'final_signal'] = -1
+                #df.at[i, 'stop_loss'] = stop_loss
+                self.signal = -1
+                self.signal_type = 'p1'
+                df = self.save_values_to_df(df, i)
+
+            
+            elif self.signal_2(df, index, i) == 1:
+                self.entry_point = 1.0005 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high'])
+                #stop_loss = 0.996 * entry_point
+
+                df.at[i, 'final_signal'] = 1
+                #df.at[i, 'stop_loss'] = stop_loss
+                self.signal = 1
+                self.signal_type = 'p2'
+                df = self.save_values_to_df(df, i)
+
+                
+            elif self.signal_2(df, index, i) == -1:
+                self.entry_point = 0.9995 * min(df.at[i, 'h_low'], df.at[i-1, 'h_low'], df.at[i-2, 'h_low'], df.at[i-3, 'h_low'])
+                #stop_loss = 1.004 * entry_point
+                df.at[i, 'final_signal'] = -1
+                #df.at[i, 'stop_loss'] = stop_loss
+                self.signal = -1
+                self.signal_type = 'p2'
+                df = self.save_values_to_df(df, i)
+
+                
+        elif self.signal == 1:
+            if ltp != False and ltp >= self.entry_point and ltp < 1.001*self.entry_point:
+                self.signal = 2
+                df.at[i, 'final_signal'] = 2
+                df.at[i, 'ltp'] = ltp
+                df.at[i, 'trade_time'] = ltp_time
+
+                self.signal_type = 0
+                df = self.save_values_to_df(df, i)
+
+            elif df.at[i, 'h_close'] < df.at[i,'top_leading_line' + str(index)]:
+                self.signal = 0
+                df.at[i, 'final_signal'] = 0
+                df.at[i, 'turn_to0'] = 1
+                self.signal_type = 0
+                df = self.save_values_to_df(df, i)
+            elif (self.signal_type == 'p1') and (self.signal_2(df, index, i) == 1):
+                self.entry_point = 1.0005 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high'])
+                #stop_loss = 0.996 * entry_point
+                df.at[i, 'final_signal'] = 1
+                #df.at[i, 'stop_loss'] = stop_loss
+                self.signal = 1
+                self.signal_type = 'p2'
+                df = self.save_values_to_df(df, i)
+            elif (self.signal_type == 'p2') and (self.signal_1(df, index, i) == 1):
+                self.entry_point = 1.0005 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high'])
+                #stop_loss = 0.996 * entry_point
+
+                df.at[i, 'final_signal'] = 1
+                #df.at[i, 'stop_loss'] = stop_loss
+                self.signal = 1
+                self.signal_type = 'p1'
+                df = self.save_values_to_df(df, i)
+                
+            
+        elif self.signal == -1:
+            if ltp != False and ltp <= self.entry_point and ltp > 0.99*self.entry_point:
+                self.signal = -2
+                df.at[i, 'final_signal'] = -2
+                df.at[i, 'ltp'] = ltp
+                df.at[i, 'trade_time'] = ltp_time
+
+                self.signal_type = 0
+                df = self.save_values_to_df(df, i)
+
+            elif df.at[i, 'h_close'] > df.at[i,'bottom_leading_line' + str(index)]:
+                self.signal = 0
+                df.at[i, 'final_signal'] = 0
+                df.at[i, 'turn_to0'] = 1
+                self.signal_type = 0
+                df = self.save_values_to_df(df, i)
+            elif (self.signal_type == 'p1') and (self.signal_2(df, index, i) == -1):
+                self.entry_point = 0.9995 * min(df.at[i, 'h_low'], df.at[i-1, 'h_low'], df.at[i-2, 'h_low'], df.at[i-3, 'h_low'])
+                #stop_loss = 1.004 * entry_point
+                df.at[i, 'final_signal'] = -1
+                #df.at[i, 'stop_loss'] = stop_loss
+                self.signal = -1
+                self.signal_type = 'p2'
+                df = self.save_values_to_df(df, i)
+            elif (self.signal_type == 'p2') and (self.signal_1(df, index, i) == -1):
+                self.entry_point = 0.9995 * min(df.at[i, 'h_low'], df.at[i-1, 'h_low'], df.at[i-2, 'h_low'], df.at[i-3, 'h_low'])
+                #stop_loss = 1.004 * entry_point
+                df.at[i, 'final_signal'] = -1
+                #df.at[i, 'stop_loss'] = stop_loss
+                self.signal = -1
+                self.signal_type = 'p1'
+                df = self.save_values_to_df(df, i)
+        
+        #LTP!!!
+        elif self.signal == 2 and ltp != False:
+            
+            if (self.stop_loss != 0) and (ltp <= self.stop_loss):
+                df.at[i, 'profit'] = self.stop_loss - self.entry_point
+                self.profit += df.at[i, 'profit']
+                self.trades += 1
+                self.entry_point = 0
+                self.exit_point = 0
+                self.stop_loss = 0
+                self.signal = 0
+                df.at[i, 'final_signal'] = 3
+                df = self.save_values_to_df(df, i)
+                
+            elif (self.exit_point != 0) and (ltp <= self.exit_point):
+                df.at[i, 'profit'] = self.exit_point - self.entry_point
+                self.profit += df.at[i, 'profit']
+                self.trades += 1
+                self.entry_point = 0
+                self.stop_loss = 0
+                self.signal = 0
+                self.exit_point = 0
+                df.at[i, 'final_signal'] = 3
+                df = self.save_values_to_df(df, i)
+                                        
+            elif ((df.at[i, 'h_open'] > df.at[i ,'base_line' + str(index)]) and (ltp <= 0.9929*df.at[i, 'h_open']) and
+                (ltp <= 0.9997*df.at[i ,'base_line' + str(index)])):
+                df.at[i, 'profit'] = 0.9993*df.at[i ,'base_line' + str(index)] - self.entry_point
+                self.profit += df.at[i, 'profit']
+                self.trades += 1
+                self.entry_point = 0
+                self.exit_point = 0
+                self.stop_loss = 0
+                self.signal = 0
+                df.at[i, 'final_signal'] = 3
+                df = self.save_values_to_df(df, i)
+                
+            elif (df.at[i, 'h_open'] > df.at[i ,'top_leading_line' + str(index)] > df.at[i, 'h_close']) and (ltp <= 0.9995*df.at[i ,'bottom_leading_line' + str(index)]):
+                df.at[i, 'profit'] = 0.9995*df.at[i ,'bottom_leading_line' + str(index)] - self.entry_point
+                self.profit += df.at[i, 'profit']
+                self.trades += 1
+                self.entry_point = 0
+                self.exit_point = 0
+                self.stop_loss = 0
+                self.signal = 0
+                df.at[i, 'final_signal'] = 3
+                df = self.save_values_to_df(df, i)
+                
+            if df.at[i, 'final_signal'] != 3:
+                
+                if self.exit_point == 0 and (df.at[i-1, 'h_close'] < df.at[i-1, 'base_line' + str(index)] < df.at[i-1, 'h_open']) and (df.at[i, 'h_close'] < df.at[i ,'base_line' + str(index)]):
+                    self.exit_point = 0.9997 * min(df.at[i, 'h_low'], df.at[i-1, 'h_low'])
+                    df.at[i, 'exit_point'] = self.exit_point
+                elif (self.exit_point != 0) and (df.at[i, 'h_close'] >= df.at[i ,'base_line' + str(index)]):
                     self.exit_point = 0
-                    self.stop_loss = 0
-                    self.signal = 0
-                    df.at[i, 'final_signal'] = -3
-                    df = self.save_values_to_df(df, i)
                     
-                elif (self.exit_point != 0) and (ltp >= self.exit_point):
-                    df.at[i, 'profit'] = self.entry_point - self.exit_point
-                    self.profit += df.at[i, 'profit']
-                    self.trades += 1
-                    self.entry_point = 0
-                    self.stop_loss = 0
-                    self.signal = 0
+                if self.stop_loss == 0:
+                    if df.at[i, 'h_close'] < df.at[i,'top_leading_line' + str(index)]:
+                        self.stop_loss = df.at[i, 'h_close']
+                        df.at[i, 'stop_loss'] = self.stop_loss
+                elif self.stop_loss != 0:
+                    if df.at[i, 'h_close'] > df.at[i, 'top_leading_line' + str(index)]:
+                        self.stop_loss = 0
+
+        #LTP!!!
+        elif self.signal == -2 and ltp != False:
+            
+            if (self.stop_loss != 0) and (ltp >= self.stop_loss):
+                df.at[i, 'profit'] = self.entry_point - self.stop_loss 
+                self.profit += df.at[i, 'profit']
+                self.trades += 1
+                self.entry_point = 0
+                self.exit_point = 0
+                self.stop_loss = 0
+                self.signal = 0
+                df.at[i, 'final_signal'] = -3
+                df = self.save_values_to_df(df, i)
+                
+            elif (self.exit_point != 0) and (ltp >= self.exit_point):
+                df.at[i, 'profit'] = self.entry_point - self.exit_point
+                self.profit += df.at[i, 'profit']
+                self.trades += 1
+                self.entry_point = 0
+                self.stop_loss = 0
+                self.signal = 0
+                self.exit_point = 0
+                df.at[i, 'final_signal'] = -3
+                df = self.save_values_to_df(df, i)
+                                        
+            elif ((df.at[i, 'h_open'] < df.at[i ,'base_line' + str(index)]) and (ltp >= 1.0071*df.at[i, 'h_open']) and
+                (ltp >= 1.0003*df.at[i ,'base_line' + str(index)])):
+                df.at[i, 'profit'] = self.entry_point - 1.0003*df.at[i ,'base_line' + str(index)]
+                self.profit += df.at[i, 'profit']
+                self.trades += 1
+                self.entry_point = 0
+                self.exit_point = 0
+                self.stop_loss = 0
+                self.signal = 0
+                df.at[i, 'final_signal'] = -3
+                df = self.save_values_to_df(df, i)
+                
+            elif (df.at[i, 'h_open'] < df.at[i ,'bottom_leading_line' + str(index)] < df.at[i, 'h_close']) and (ltp >= 1.0005*df.at[i ,'top_leading_line' + str(index)]):
+                df.at[i, 'profit'] = self.entry_point - 0.9995*df.at[i ,'top_leading_line' + str(index)]
+                self.profit += df.at[i, 'profit']
+                self.trades += 1
+                self.entry_point = 0
+                self.exit_point = 0
+                self.stop_loss = 0
+                self.signal = 0
+                df.at[i, 'final_signal'] = -3
+                df = self.save_values_to_df(df, i)
+                
+            if df.at[i, 'final_signal'] != -3:
+                
+                if self.exit_point == 0 and (df.at[i-1, 'h_close'] > df.at[i-1, 'base_line' + str(index)] > df.at[i-1, 'h_open']) and (df.at[i, 'h_close'] > df.at[i ,'base_line' + str(index)]):
+                    self.exit_point = 1.0003 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'])
+                    df.at[i, 'exit_point'] = self.exit_point
+                elif (self.exit_point != 0) and (df.at[i, 'h_close'] <= df.at[i ,'base_line' + str(index)]):
                     self.exit_point = 0
-                    df.at[i, 'final_signal'] = -3
-                    df = self.save_values_to_df(df, i)
-                                            
-                elif ((df.at[i, 'h_open'] < df.at[i ,'base_line' + str(index)]) and (ltp >= 1.0071*df.at[i, 'h_open']) and
-                    (ltp >= 1.0003*df.at[i ,'base_line' + str(index)])):
-                    df.at[i, 'profit'] = self.entry_point - 1.0003*df.at[i ,'base_line' + str(index)]
-                    self.profit += df.at[i, 'profit']
-                    self.trades += 1
-                    self.entry_point = 0
-                    self.exit_point = 0
-                    self.stop_loss = 0
-                    self.signal = 0
-                    df.at[i, 'final_signal'] = -3
-                    df = self.save_values_to_df(df, i)
                     
-                elif (df.at[i, 'h_open'] < df.at[i ,'bottom_leading_line' + str(index)] < df.at[i, 'h_close']) and (ltp >= 1.0005*df.at[i ,'top_leading_line' + str(index)]):
-                    df.at[i, 'profit'] = self.entry_point - 0.9995*df.at[i ,'top_leading_line' + str(index)]
-                    self.profit += df.at[i, 'profit']
-                    self.trades += 1
-                    self.entry_point = 0
-                    self.exit_point = 0
-                    self.stop_loss = 0
-                    self.signal = 0
-                    df.at[i, 'final_signal'] = -3
-                    df = self.save_values_to_df(df, i)
-                    
-                if df.at[i, 'final_signal'] != -3:
-                    
-                    if self.exit_point == 0 and (df.at[i-1, 'h_close'] > df.at[i-1, 'base_line' + str(index)] > df.at[i-1, 'h_open']) and (df.at[i, 'h_close'] > df.at[i ,'base_line' + str(index)]):
-                        self.exit_point = 1.0003 * max(df.at[i, 'h_high'], df.at[i-1, 'h_high'])
-                        df.at[i, 'exit_point'] = self.exit_point
-                    elif (self.exit_point != 0) and (df.at[i, 'h_close'] <= df.at[i ,'base_line' + str(index)]):
-                        self.exit_point = 0
-                        
-                    if self.stop_loss == 0:
-                        if df.at[i, 'h_close'] > df.at[i,'bottom_leading_line' + str(index)]:
-                            self.stop_loss = df.at[i, 'h_close']
-                            df.at[i, 'stop_loss'] = self.stop_loss
-                    elif self.stop_loss != 0:
-                        if df.at[i, 'h_close'] < df.at[i, 'bottom_leading_line' + str(index)]:
-                            self.stop_loss = 0
+                if self.stop_loss == 0:
+                    if df.at[i, 'h_close'] > df.at[i,'bottom_leading_line' + str(index)]:
+                        self.stop_loss = df.at[i, 'h_close']
+                        df.at[i, 'stop_loss'] = self.stop_loss
+                elif self.stop_loss != 0:
+                    if df.at[i, 'h_close'] < df.at[i, 'bottom_leading_line' + str(index)]:
+                        self.stop_loss = 0
                         
         #print(self.profit)
         #print(self.trades)
