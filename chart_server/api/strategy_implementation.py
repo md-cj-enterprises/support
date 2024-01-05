@@ -140,7 +140,7 @@ class StrategyImplementation:
             if ((df.at[i-3, 'h_open'] > df.at[i-3,'top_leading_line' + str(index)] >= df.at[i-3, 'h_low']) and (df.at[i-3, 'h_close'] >= df.at[i-3,'top_leading_line' + str(index)]) and
                 (df.at[i-2, 'h_close'] > df.at[i-2,'top_leading_line' + str(index)]) and (df.at[i-1, 'h_close'] > df.at[i-1,'top_leading_line' + str(index)]) and
                 (df.at[i, 'h_close'] > df.at[i,'top_leading_line' + str(index)]) and
-                max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high']) <= 1.0043*df.at[i-4,'top_leading_line' + str(index)]):
+                max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high']) <= 1.0043*df.at[i-3,'top_leading_line' + str(index)]):
                 return 1
             elif ((df.at[i-3, 'h_open'] < df.at[i-3,'bottom_leading_line' + str(index)] <= df.at[i-3, 'h_high']) and (df.at[i-3, 'h_close'] <= df.at[i-3,'bottom_leading_line' + str(index)]) and
                 (df.at[i-2, 'h_close'] < df.at[i-2,'bottom_leading_line' + str(index)]) and (df.at[i-1, 'h_close'] < df.at[i-1,'bottom_leading_line' + str(index)]) and

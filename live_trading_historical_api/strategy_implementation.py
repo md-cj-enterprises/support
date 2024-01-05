@@ -124,7 +124,7 @@ class StrategyImplementation:
             if ((df.at[i-3, 'h_open'] > df.at[i-3,'top_leading_line' + str(index)] >= df.at[i-3, 'h_low']) and (df.at[i-3, 'h_close'] >= df.at[i-3,'top_leading_line' + str(index)]) and
                 (df.at[i-2, 'h_close'] > df.at[i-2,'top_leading_line' + str(index)]) and (df.at[i-1, 'h_close'] > df.at[i-1,'top_leading_line' + str(index)]) and
                 (df.at[i, 'h_close'] > df.at[i,'top_leading_line' + str(index)]) and
-                max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high']) <= 1.0043*df.at[i-4,'top_leading_line' + str(index)]):
+                max(df.at[i, 'h_high'], df.at[i-1, 'h_high'], df.at[i-2, 'h_high'], df.at[i-3, 'h_high']) <= 1.0043*df.at[i-3,'top_leading_line' + str(index)]):
                 return 1
             elif ((df.at[i-3, 'h_open'] < df.at[i-3,'bottom_leading_line' + str(index)] <= df.at[i-3, 'h_high']) and (df.at[i-3, 'h_close'] <= df.at[i-3,'bottom_leading_line' + str(index)]) and
                 (df.at[i-2, 'h_close'] < df.at[i-2,'bottom_leading_line' + str(index)]) and (df.at[i-1, 'h_close'] < df.at[i-1,'bottom_leading_line' + str(index)]) and
@@ -180,7 +180,6 @@ class StrategyImplementation:
     
         
         #df = ichimoku_cloud(df, p, q, r, s, index)
-        print(self.signal)
             
         if (self.signal != 2) and (self.signal != -2):
             if self.p3_switch == 'on':
@@ -254,7 +253,6 @@ class StrategyImplementation:
             if df.at[i, 'high']  >= self.entry_point: #and ltp < 1.001*self.entry_point:
                 self.signal = 2
                 df.at[i, 'final_signal'] = 2
-                print("signal is 2")
 
                 self.signal_type = 0
                 df = self.save_values_to_df(df, i)
@@ -317,7 +315,6 @@ class StrategyImplementation:
         
         #LTP!!!
         elif self.signal == 2:
-            print("HHEELLOO")
             if (self.stop_loss != 0) and (df.at[i, 'low'] <= self.stop_loss):
                 df.at[i, 'profit'] = self.stop_loss - self.entry_point
                 self.profit += df.at[i, 'profit']
@@ -364,13 +361,11 @@ class StrategyImplementation:
                 df = self.save_values_to_df(df, i)
                 
             if df.at[i, 'final_signal'] != 3:
-                print("HELLO??")
                 if self.exit_point == 0 and (df.at[i-1, 'h_close'] < df.at[i-1, 'base_line' + str(index)] < df.at[i-1, 'h_open']) and (df.at[i, 'h_close'] < df.at[i ,'base_line' + str(index)]):
                     self.exit_point = 0.9997 * min(df.at[i, 'h_low'], df.at[i-1, 'h_low'])
                     df.at[i, 'exit_point'] = self.exit_point
                 elif (self.exit_point != 0) and (df.at[i, 'h_close'] >= df.at[i ,'base_line' + str(index)]):
                     self.exit_point = 0
-                print(self.stop_loss)
                 if self.stop_loss == 0:
                     if df.at[i, 'h_close'] < df.at[i,'top_leading_line' + str(index)]:
                         self.stop_loss = df.at[i, 'h_close']
