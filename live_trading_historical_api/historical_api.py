@@ -114,7 +114,7 @@ class HistoricalApi():
 
                 todate = data.at[0, 'date'].replace(tzinfo=pytz.timezone("Asia/Kolkata")) - datetime.timedelta(minutes=5)
             except Exception as e:
-                print("Historic Api failed: {}".format(e.message))
+                print("Historic Api failed!")
             time.sleep(0.4)
         self.last_call = datetime.datetime.now(pytz.timezone("Asia/Kolkata")).timestamp()
         #print("Finished reading data")

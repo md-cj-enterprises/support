@@ -105,10 +105,8 @@ print("sheets")
 print(sheets)
 for i in range(len(names_list)):
     if not names_list[i] in sheets:
-        print(names_list[i])
 
         wb.sheets.add(names_list[i])
-        print("???")
         
 for i in range(len(names_list)):
 
@@ -156,14 +154,19 @@ while True:
             print(data)
             
             l = len(df_list[i])
-
-            if (len(data) != 1):
-                
+            
+            if (len(data) == 3):
                 ld = len(data) - 2
+
+
+            if (len(data) == 2):
+                
+                ld = len(data) - 1
             
             else:
                 ld = len(data) - 1
             if timestamp_five_mins.replace(tzinfo=None) - df_list[i].at[len(df_list[i]) - 1, 'date'] > datetime.timedelta(minutes = 9):
+                
                 df_list[i].loc[l, 'timestamp'] = datetime.datetime.timestamp(timestamp_five_mins - datetime.timedelta(minutes = 10))
                 df_list[i].loc[l, 'date'] = timestamp_five_mins.replace(tzinfo=None) - datetime.timedelta(minutes = 10)
                 df_list[i].loc[l, 'open'] = data.at[ld - 1, 'open']
