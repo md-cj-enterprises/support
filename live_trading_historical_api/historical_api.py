@@ -151,7 +151,7 @@ class HistoricalApi():
                     
         if len_df == 0:
             len_df = 0
-            return datetime.datetime.strptime("2023-12-15 09:15", '%Y-%m-%d %H:%M')
+            return datetime.datetime.strptime("2023-11-01 09:15", '%Y-%m-%d %H:%M')
 
         last_timestamp = ws.range('A' + str(len_df)).value
         return last_timestamp
