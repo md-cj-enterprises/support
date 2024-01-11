@@ -167,7 +167,7 @@ while True:
                 ld = len(data) - 1
             if timestamp_five_mins.replace(tzinfo=None) - df_list[i].at[len(df_list[i]) - 1, 'date'] > datetime.timedelta(minutes = 9):
                 
-                df_list[i].loc[l, 'timestamp'] = datetime.datetime.timestamp(timestamp_five_mins - datetime.timedelta(minutes = 10))
+                #df_list[i].loc[l, 'timestamp'] = datetime.datetime.timestamp(timestamp_five_mins - datetime.timedelta(minutes = 10))
                 df_list[i].loc[l, 'date'] = timestamp_five_mins.replace(tzinfo=None) - datetime.timedelta(minutes = 10)
                 df_list[i].loc[l, 'open'] = data.at[ld - 1, 'open']
                 df_list[i].loc[l, 'close'] = data.at[ld - 1, 'close']
@@ -180,13 +180,13 @@ while True:
                 l+=1
 
                 
-            df_list[i].loc[l, 'timestamp'] = datetime.datetime.timestamp(timestamp_five_mins)
+            #df_list[i].loc[l, 'timestamp'] = datetime.datetime.timestamp(timestamp_five_mins)
             df_list[i].loc[l, 'date'] = timestamp_five_mins.replace(tzinfo=None) - datetime.timedelta(minutes = 5)
 
             df_list[i].loc[l, 'open'] = data.at[ld, 'open']
-            df_list[i].loc[l, 'close'] = data.at[ld, 'close']
             df_list[i].loc[l, 'high'] = data.at[ld, 'high']
             df_list[i].loc[l, 'low'] = data.at[ld, 'low']
+            df_list[i].loc[l, 'close'] = data.at[ld, 'close']
             df_list[i] = strategy_impl.calculate_heiken_values(df_list[i])
             df_list[i] = strategy_impl.ichimoku_cloud(df_list[i], p, q, r, s, index)
             df_list[i] = strategy_impl.cj_strategy_base_line(df_list[i], len(df_list[i]) - 1, index)

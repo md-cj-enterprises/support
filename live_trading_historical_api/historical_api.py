@@ -43,10 +43,8 @@ class HistoricalApi():
         data = self.get_historical_data(fromdate, todate, symboltoken)
 
         rng = ws.range('A1')
-        len_df = 0
         if (rng.value == 'date'):
             df = ws['A1'].expand().options(pd.DataFrame, index = False).value
-            len_df = len(df) - 3
             data = self.concat_excel_and_api(df, data)
             #data = pd.concat([df, data], ignore_index=True)
         else:
@@ -58,9 +56,7 @@ class HistoricalApi():
             data['entry_position'] = ""
             data['stop_loss'] = ""
             data['signal_type'] = ""
-            data['turn_to0'] = ""
-            data['trade_time'] = ""
-            data['ltp'] = ""
+            data['turn_to0'] = ""            
             data['p3_switch'] = ""
 
 
@@ -122,7 +118,7 @@ class HistoricalApi():
             logout=self.obj.terminateSession(self.user_id)
             print("Logout Successfull")
         except Exception as e:
-            print("Logout failed: {}".format(e.message))
+            print("Logout failed")
         self.queueLock.release()
 
 
