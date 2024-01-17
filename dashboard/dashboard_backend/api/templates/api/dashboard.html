@@ -1,37 +1,90 @@
 <!DOCTYPE html>
+
 <html>
 <head>
-    <title>Live Trading Prices</title>
+    <style>
+        h1 {text-align: center;}
+
+        #dashboard {
+          font-family: Arial, Helvetica, sans-serif;
+          border-collapse: collapse;
+          width: 100%;
+        }
+        
+        #dashboard td, #dashboard th {
+          border: 1px solid #ddd;
+          padding: 8px;
+        }
+        
+        #dashboard tr:nth-child(even){background-color: #f2f2f2;}
+        
+        #dashboard tr:hover {background-color: #ddd;}
+        
+        #dashboard th {
+          padding-top: 12px;
+          padding-bottom: 12px;
+          text-align: left;
+          background-color: #04AA6D;
+          color: white;
+        }
+        </style>
+        
+    <title>Dasboard</title>
+
+    <!-- Your other head content -->
+
+    <!-- Include jQuery (or use an alternative) -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            function updateLivePrices() {
-                $.ajax({
-                    url: '/get_ltp/',
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        // Update the prices on the page
-                        console.log("success!!!")
-                        $('#live-prices-list').empty();
-                        console.log(data);
-                        var ltp = data.price;
-                        document.getElementById('output').innerHTML = ltp;
-                    },
-                    error: function(error) {
-                        console.log('Error fetching live prices:', error);
-                    },
-                });
-            }
 
-            setInterval(updateLivePrices, 1000);
-            console.log("hello!!!")
-
-        });
-    </script>
 </head>
 <body>
+
+    <!-- Your HTML content -->
     <h1>Dashboard</h1>
-    <p id="output"></p>
+
+    <table id="dashboard">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Net Qty</th>
+                <th>Entry Rate</th>
+                <th>LTP</th>
+                <th>M2M</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in scripts_list %}
+                <tr>
+                    <td>{{ s.name }}</td>
+                    <td id="position_{{ s.id }}">{{ s.position }}</td>
+                    <td id="net_quantity_{{ s.id }}">{{ s.net_quantity }}</td>
+                    <td id="entry_rate_{{ s.id }}">{{ s.entry_rate }}</td>
+                    <td id="ltp_{{ s.id }}">{{ s.ltp }}</td>
+                    <td id="m2m_{{ s.id }}">{{ s.m2m }}</td>
+
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        // Function to update the price using Ajax
+        function updatePrices() {
+            {% for s in scripts_list %}
+                console.log('{{scripts_list}}');
+                console.log('/get_ltp/{{ s.id }}');
+                $.ajax({
+                    url: '/get_ltp/{{ s.id }}',  
+                    success: function(data) {
+                        $('#ltp_{{ s.id }}').text(data.ltp);
+                }
+                });
+             {% endfor %}
+
+        }
+        // Update prices every second
+        setInterval(updatePrices, 1000);
+    </script>
 </body>
 </html>
