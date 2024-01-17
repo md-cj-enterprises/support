@@ -3,10 +3,22 @@
 <html>
 <head>
     <style>
-        h1 {text-align: center;}
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        h1 {
+            text-align: center;
+        }
+        h4 {
+            text-align: center;
+            font-size: large;
+        }
+        p {
+            text-align: center;
+            font-size: small;
+        }
 
         #dashboard {
-          font-family: Arial, Helvetica, sans-serif;
           border-collapse: collapse;
           width: 100%;
         }
@@ -23,10 +35,41 @@
         #dashboard th {
           padding-top: 12px;
           padding-bottom: 12px;
-          text-align: left;
+          text-align: center;
           background-color: #04AA6D;
           color: white;
+          
         }
+
+        #card {
+            /* Add shadows to create the "card" effect */
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            transition: 0.3s;
+            font-family: Arial, Helvetica, sans-serif;
+            border-radius: 5px; /* 5px rounded corners */
+            background-color:rgb(202, 244, 223);
+
+
+        }
+
+        /* On mouse-over, add a deeper shadow */
+        #card:hover {
+            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Add some padding inside the card container */
+        #container {
+            padding: 2px 16px;
+            width: 170px;
+
+        }
+        #horizontal-container{ 
+            display:flex; 
+            flex-direction: row; 
+            flex-wrap: nowrap; 
+            justify-content: space-around; 
+        } 
+
         </style>
         
     <title>Dasboard</title>
@@ -39,8 +82,55 @@
 </head>
 <body>
 
-    <!-- Your HTML content -->
-    <h1>Dashboard</h1>
+    <h1>CJ Dashboard</h1>
+
+    <div id="horizontal-container">
+
+        <div id="card">
+            <div id="container">
+            <h4><b>John Doe</b></h4>
+            <p>Today's date</p>
+            </div>
+        </div>
+
+        <div id="card">
+            <div id="container">
+                <h4><b>80</b></h4>
+                <p>Net Capital Exposure</p>
+            </div>
+        </div>
+
+        <div id="card">
+            <div id="container">
+                <h4><b>80</b></h4>
+                <p>M2M</p>
+            </div>
+        </div>
+
+        <div id="card">
+            <div id="container">
+                <h4><b>80</b></h4>
+                <p>Total Position</p>
+            </div>
+        </div>
+
+        <div id="card">
+            <div id="container">
+                <h4><b>80</b></h4>
+                <p>Volatility Risk</p>
+            </div>
+        </div>
+
+        <div id="card">
+            <div id="container">
+                <h4><b>1000000$</b></h4>
+                <p>Exit Profit</p>
+            </div>
+        </div>
+
+    </div>
+
+    <p></p>
 
     <table id="dashboard">
         <thead>
