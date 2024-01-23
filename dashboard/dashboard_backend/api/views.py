@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from .models import TradingScript, DashboardInfo
 
 #delete all scripts when starting the server. maybe this is not required 
-TradingScript.objects.all().delete()
+#TradingScript.objects.all().delete()
 
 dashboard_info = DashboardInfo()
 
