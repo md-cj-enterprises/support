@@ -26,6 +26,7 @@
         #dashboard td, #dashboard th {
           border: 1px solid #ddd;
           padding: 8px;
+
         }
         
         #dashboard tr:nth-child(even){background-color: #f2f2f2;}
@@ -48,8 +49,6 @@
             font-family: Arial, Helvetica, sans-serif;
             border-radius: 5px; /* 5px rounded corners */
             background-color:rgb(202, 244, 223);
-
-
         }
 
         /* On mouse-over, add a deeper shadow */
@@ -95,35 +94,35 @@
 
         <div id="card">
             <div id="container">
-                <h4><b>80</b></h4>
+                <h4 id="net_exposure"><b>{{ dashboard_info.net_exposure }}</b></h4>
                 <p>Net Capital Exposure</p>
             </div>
         </div>
 
         <div id="card">
             <div id="container">
-                <h4><b>80</b></h4>
+                <h4 id="m2m"><b>{{ dashboard_info.m2m }}</b></h4>
                 <p>M2M</p>
             </div>
         </div>
 
         <div id="card">
             <div id="container">
-                <h4><b>80</b></h4>
+                <h4 id="total_position"><b>{{ dashboard_info.total_position }}</b></h4>
                 <p>Total Position</p>
             </div>
         </div>
 
         <div id="card">
             <div id="container">
-                <h4><b>80</b></h4>
+                <h4 id="volatility_risk"><b>{{ dashboard_info.volatility_risk }}</b></h4>
                 <p>Volatility Risk</p>
             </div>
         </div>
 
         <div id="card">
             <div id="container">
-                <h4><b>1000000$</b></h4>
+                <h4 id="exit_profit"><b>{{ dashboard_info.exit_profit }}</b></h4>
                 <p>Exit Profit</p>
             </div>
         </div>
@@ -162,8 +161,6 @@
         // Function to update the price using Ajax
         function updatePrices() {
             {% for s in scripts_list %}
-                console.log('{{scripts_list}}');
-                console.log('/get_ltp/{{ s.id }}');
                 $.ajax({
                     url: '/get_ltp/{{ s.id }}',  
                     success: function(data) {
@@ -173,8 +170,24 @@
              {% endfor %}
 
         }
+        function updateDashboardInfo() {
+            $.ajax({
+                    url: '/get_dashboard_info',  
+                    success: function(data) {
+                        $('#net_exposure').text(data.net_exposure);
+                        $('#m2m').text(data.m2m);
+                        $('#total_position').text(data.total_position);
+                        $('#volatility_risk').text(data.volatility_risk);
+                        $('#exit_profit').text(data.exit_profit);
+                }
+                });
+
+        }
         // Update prices every second
         setInterval(updatePrices, 1000);
+        setInterval(updateDashboardInfo, 1000);
+
     </script>
+
 </body>
 </html>
