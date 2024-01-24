@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-+8nc0inl_kj=kyhv)$+mga=z5l9x9div26q_23=o$e+4a+bds8
 # SECURITY WARNING: don't run with debug turned on in production! 
 DEBUG = True
 
-ALLOWED_HOSTS = ['ec2-13-235-67-140.ap-south-1.compute.amazonaws.com']
+ALLOWED_HOSTS = ['ec2-13-235-67-140.ap-south-1.compute.amazonaws.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -102,9 +102,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+
 
 
 
@@ -124,6 +122,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
